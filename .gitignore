@@ -1,0 +1,7 @@
+/target/
+/dist/
+/artifacts/
+/.harness/
+*.sqlite-shm
+*.sqlite-wal
+.env

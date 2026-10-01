@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-harness:evaluation-catalogue:v1",
+  "title": "Evaluation design catalogue (not an execution report)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "title",
+    "language",
+    "design_status",
+    "catalogue_is_execution_report",
+    "complete_system_scenarios_executed",
+    "live_development_tasks_executed",
+    "notes",
+    "verdicts",
+    "scenarios",
+    "task_families",
+    "development_task_protocol",
+    "release_thresholds",
+    "performance",
+    "reviewer_calibration",
+    "decision_calibration"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "design_status": {
+      "const": "planned"
+    },
+    "catalogue_is_execution_report": {
+      "const": false
+    },
+    "complete_system_scenarios_executed": {
+      "const": false
+    },
+    "live_development_tasks_executed": {
+      "const": false
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verdicts": {
+      "type": "object"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 42,
+      "maxItems": 42,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "task_families": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/family"
+      }
+    },
+    "development_task_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_count",
+        "dev_count",
+        "holdout_count",
+        "fresh_repeats",
+        "total_task_runs_per_configuration",
+        "planned_configurations",
+        "total_task_runs_all_configurations",
+        "configuration_status",
+        "fixture_status",
+        "execution_status",
+        "freshness",
+        "fairness",
+        "hidden_oracle"
+      ],
+      "properties": {
+        "family_count": {
+          "const": 10
+        },
+        "dev_count": {
+          "const": 20
+        },
+        "holdout_count": {
+          "const": 10
+        },
+        "fresh_repeats": {
+          "const": 3
+        },
+        "total_task_runs_per_configuration": {
+          "const": 90
+        },
+        "total_task_runs_all_configurations": {
+          "const": 270
+        },
+        "configuration_status": {
+          "const": "planned"
+        },
+        "fixture_status": {
+          "const": "planned"
+        },
+        "execution_status": {
+          "const": "not_executed"
+        },
+        "planned_configurations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "B0",
+              "B1",
+              "H"
+            ]
+          }
+        },
+        "freshness": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "fairness": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "hidden_oracle": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "release_thresholds": {
+      "type": "object"
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "targets_proposed",
+        "requirements"
+      ],
+      "properties": {
+        "status": {
+          "const": "planned_until_baseline_frozen"
+        },
+        "targets_proposed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "warm_version_p95_ms",
+            "idle_coordinator_rss_mib",
+            "dispatch_no_io_p95_ms",
+            "managed_helper_cancel_secs"
+          ],
+          "properties": {
+            "warm_version_p95_ms": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "idle_coordinator_rss_mib": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "dispatch_no_io_p95_ms": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "managed_helper_cancel_secs": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "reviewer_calibration": {
+      "type": "object"
+    },
+    "decision_calibration": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "test_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "target",
+        "covers",
+        "limitations",
+        "platform_scope"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "covers": {
+          "type": "string"
+        },
+        "limitations": {
+          "type": "string"
+        },
+        "platform_scope": {
+          "type": "string"
+        }
+      }
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mandatory",
+        "statement",
+        "oracle"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^S[0-9]{2}\\.C[0-9]{2}$"
+        },
+        "mandatory": {
+          "const": true
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "phase",
+        "priority",
+        "design_status",
+        "implementation_status",
+        "execution_status",
+        "fixture_real",
+        "platforms",
+        "required_profiles",
+        "setup",
+        "action",
+        "criteria",
+        "evidence",
+        "test_mapping",
+        "limitations"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^S(?:0[1-9]|[1-3][0-9]|4[0-2])$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase": {
+          "enum": [
+            "foundation",
+            "verification",
+            "multiagent",
+            "intelligence",
+            "runtime_performance"
+          ]
+        },
+        "priority": {
+          "enum": [
+            "P0",
+            "P1",
+            "P2"
+          ]
+        },
+        "design_status": {
+          "const": "planned"
+        },
+        "implementation_status": {
+          "enum": [
+            "planned",
+            "partial"
+          ]
+        },
+        "execution_status": {
+          "const": "not_run_as_complete_scenario"
+        },
+        "fixture_real": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "mechanical",
+              "scripted_fixture",
+              "live_models",
+              "os_probes",
+              "benchmark"
+            ]
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "linux",
+              "macos",
+              "windows"
+            ]
+          }
+        },
+        "required_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "native-trusted",
+              "isolated"
+            ]
+          }
+        },
+        "setup": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "action": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/criterion"
+          }
+        },
+        "test_mapping": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/test_mapping"
+          }
+        }
+      }
+    },
+    "instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "split",
+        "visibility",
+        "status",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^Q(?:0[1-9]|10)-(?:D[12]|H1)$"
+        },
+        "split": {
+          "enum": [
+            "dev",
+            "holdout"
+          ]
+        },
+        "visibility": {
+          "enum": [
+            "public",
+            "hidden"
+          ]
+        },
+        "status": {
+          "const": "planned"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "design_status",
+        "fixtures_status",
+        "acceptance",
+        "instances"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^Q(?:0[1-9]|10)$"
+        },
+        "title": {
+          "type": "string"
+        },
+        "design_status": {
+          "const": "planned"
+        },
+        "fixtures_status": {
+          "const": "planned"
+        },
+        "acceptance": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instances": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/instance"
+          }
+        }
+      }
+    }
+  }
+}

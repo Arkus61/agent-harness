@@ -1,0 +1,92 @@
+# Статус реализации — 0.1, 2026-10-01
+
+Реализован локальный Rust CLI с native agent loop, DAG, Git worktrees, интеграцией, командными проверками и четырьмя независимыми reviewer-сессиями. Это рабочая исходная версия **`native-trusted`**, с реальным OpenAI-compatible transport и отдельно обозначенными scripted fixtures. Полное завершение всех этапов [архитектуры](ARCHITECTURE_PLAN.md) не заявляется.
+
+## Реализовано
+
+| Область | Фактическая реализация |
+|---|---|
+| CLI | `doctor`, `run`, `resume`, `status`, `inspect`, `report`, `cancel`, `reconcile`, `settle`, `merge`, `demo`, `eval`; административные команды memory/skills/strategy |
+| TaskSpec | Типизированный JSON, неизвестные поля отклоняются; requirement/check/budget limits; explicit DAG либо typed model planner |
+| DAG | Проверка покрытия, циклов, зависимостей и консервативного ownership overlap; bounded parallel builders; точные входные и выходные SHA |
+| Git | Detached worktrees, committed baseline, интеграция дельт; отключение hooks/filters для служебных Git-команд; отдельная fast-forward публикация с expected ref |
+| ToolGateway | Read/write scopes, ownership, command program/argv prefix, read-only reviewers; защита специальных путей и отказ links/junctions в файловых API |
+| Existing-source write/edit | BLAKE3 `expected_hash` обязателен, stale hash отклоняется; `edit_file` заменяет ровно один непустой snippet с atomic CAS/recheck; partial-edit UTF-8 source/result ≤64 МиБ |
+| Protected acceptance | `protected_paths` неизменяемы: Gateway отклоняет writes; native final diff и интегрированный diff относительно исходного baseline также проверяются; ordinary product tests могут меняться |
+| Native processes | Ограниченный stdout/stderr, timeout/cancel; Unix process group либо Windows Job Object, cleanup при Drop future |
+| Durability | SQLite WAL + synchronous FULL; state/event/outbox в транзакции; intents/receipts; BLAKE3 CAS с проверкой bytes/hash |
+| Recovery | Durable budget/repair limits и generation fencing; сохранённый план/base и reuse завершённых node outputs с проверкой input tree; pending effects и неизвестный usage блокируют resume; reconcile/settle с evidence |
+| Budget | Root token spent/reserved accounting, идемпотентные reserve/settle, wall-time deadline от исходного created_at; unknown spending сохраняется |
+| Model transport | Local loopback HTTP либо явно разрешённый внешний HTTPS; no redirects, no proxy, no automatic request retry; bounded body, строгий JSON и usage contract |
+| DecisionService | Typed оценки `model`/`tools`/`risk`, shadow/enforced; модель не отменяет программный запрет; action assessment для предложенного точного действия |
+| Context | Scoped deterministic file discovery/selection, byte bounds, источники/hash и omissions; targeted read/search; read snapshot потоково получает full BLAKE3 при bounded returned prefix; explicit-secret redaction |
+| Verification | Проверки точного интегрированного кандидата; requirements/code/tests/security reviews; источник и строка proof проверяются, requirements coverage обязательна |
+| Repair | Один batch от интегрированного кандидата, generation advance, идемпотентный hook claim; обязательные проверки повторяются полностью |
+| Fixture separation | Scripted run получает только `FIXTURE_VERIFIED`; fixture reviews не закрывают production gate; fixture merge запрещён |
+| Memory | Project/source scoped SQLite FTS5, candidate/promotion, typed records и консервативные topic conflicts; builder получает до пяти active records для точного input SHA; после production VERIFIED episode сохраняется candidate, independent reviews память не получают |
+| Skills | Immutable `id@version`, content hash, dependencies и capabilities; quarantine; pinned packages добавляются к task prompt и повторно проверяются перед действиями |
+| StrategySelector | Hard constraints, bounded probe requests, сравнимость measurements, Pareto + weighted choice; отдельная CLI/API, данные не объявляются измерениями без evidence |
+| CI | Workflow format/clippy/tests/release build на Ubuntu, macOS, Windows; upload executable artifacts |
+
+Outbox здесь — durable журнал доставки и основа hook idempotency. Полноценного универсального event dispatcher с отдельными worker leases/retries ещё нет. Local knowledge и skills используют отдельные SQLite файлы с собственной авторитетностью; их обновления не изображаются одной транзакцией с core DB.
+
+## Проверки и доказательства
+
+Набор разбит на unit contracts, переносимые integration contracts и CLI end-to-end fixtures. `harness eval` сообщает только действительно исполненные component assertions, а не число исполненных полных сценариев S01–S42. [Полный план оценивания](EVALUATION_PLAN.md), [каталог](../evals/scenarios.json) и [JSON Schema](../evals/scenarios.schema.json) фиксируют критерии и отдельное planned/partial покрытие.
+
+| Сценарии | Что проверяется сейчас | Что это не доказывает |
+|---|---|---|
+| S01/S13/S15/S16 | CLI demo, integrated candidate, четыре explicit fixture review, fixture gate и запрет публикации; local mock HTTP → engine с typed assessments, command receipt, source proofs и settled usage | Качество реального builder/reviewer или независимую истинность model proof; mock HTTP проверяет механизм, не LLM |
+| S02/S03/S10 | Ошибки TaskSpec, scopes/commands/ownership, Unicode/CRLF, stale hash, traversal и links | Confinement произвольного native-кода либо устойчивость к hostile same-user races |
+| S04/S05/S09/S11/S12 | Store reopen, транзакционные rollback, durable intent failpoint и reconciliation, budget/generation, missing/corrupt CAS | Все crash points, внешний exactly-once, power-loss certification и весь S04–S12 |
+| S07/S08 | Helper process timeout, bounded stdout, cancel descendant heartbeat и Drop cleanup | Остановку намеренно detached процесса или гарантированный Windows pre-exec containment |
+| S19 | Duplicate/stale hook claims и repair-batch foundation | Полный dispatcher, бесконечные adversarial event graphs и доставку после любого crash |
+| S20/S21/S22 | Fixture publication rejection, explicit DAG validation, две независимые branches перед dependent builder | Live-model multiagent success rate, все Git conflicts и performance speedup |
+| S26–S36/S42 | Component tests контекста/provider/memory/skills/selector; hashes, statuses, limits, source scopes и сравнимость | Все полные сценарии, истинность arbitrary evidence, live токен-экономию и корректность полноценных кешей/replay |
+| S38 | `isolated` fail-closed до инструментов/model calls | Поддержку strict runtime S37 |
+
+Итоговый прогон текущей версии на **native Linux, Rust 1.99.0** прошёл: **60 library + 6 contracts + 7 end-to-end = 73 теста**, включая memory integration, protected paths, partial edits и source snapshot guards.
+
+| Проверка | Результат |
+|---|---|
+| `cargo test --locked --all-targets` | PASS — 73 теста |
+| `cargo fmt --all -- --check` | PASS |
+| `cargo clippy --locked --all-targets -- -D warnings` | PASS |
+| `cargo build --locked --release` | PASS |
+
+Toolchain закреплён в `rust-toolchain.toml`. Release smoke также завершён: `demo` → `FIXTURE_VERIFIED` с одним настоящим Cargo check и четырьмя scripted reviews; `eval` → 20 выполненных component assertions, все PASS.
+
+Для **Linux x86_64 `--version`** в локальном контейнере с прогретой файловой системой выполнены 20 warmups и 200 новых процессов: p50 **2,116 мс**, p95 **2,508 мс**, max **2,751 мс**. Размер executable — **11 202 440 байт**. [Методика baseline](BASELINE.md) и [raw samples](startup-baseline.json) фиксируют условия измерения. Этот короткий путь CLI не запускает весь координатор; полный startup, RSS, dispatch и весь S40 не измерены и не закрыты этим результатом.
+
+Реальные 30 задач Q01–Q10, hidden holdout, три повторения, B0/B1/H comparison и reviewers/Jev calibration **не исполнялись**. Исполнение на всех трёх ОС в текущей локальной сессии не подтверждено. Настройка CI отличается от фактически завершённых matrix runs.
+
+## Ограничения, важные для пользователя
+
+1. **`native-trusted` не является sandbox.** Granted commands, build scripts и тестируемый код получают права пользователя на файлы и сеть. Файловый Gateway не ограничивает произвольный subprocess. IPC/SQLite принадлежность текущему пользователю не защищают от враждебного процесса того же пользователя.
+2. **`isolated` не реализован.** Doctor честно сообщает отсутствие confinement; требуемый профиль блокируется, автоматического downgrade нет. Отдельных OS/kernel probes strict isolation ещё нет.
+3. **Windows Job Object назначается после spawn.** Есть окно гонки до назначения. Unix process groups тоже не сдерживают намеренное отделение процессов. Cleanup подходит для управляемых native-процессов, не для недоверенного adversarial code.
+4. **Resume восстанавливает node checkpoints, но не диалог модели.** Используются сохранённый plan/base и завершённые outputs с совместимым input tree. Незавершённые nodes строятся заново. Pending effects/usage требуют ручного подтверждения. Выполненная команда незавершённого builder запрещает автоматический replay; для такого checkpoint нужна инспекция и явно новая задача.
+5. **Учитываются токены и deadline, но не деньги.** Provider tariffs, currency, monetary budget/reservations и billing receipts пока не реализованы. Более того, token reservation — консервативная byte-based оценка, не tokenizer-specific quota guarantee; фактический overspend фиксируется и блокирует продолжение.
+6. **Нет streaming model output.** HTTP request использует `stream: false`; command output bounded, но нет live token UI или SSE model stream.
+7. **DecisionService пока не полноценный Jev backend.** Он использует configured model с typed JSON. Нет отдельного Choice/Score/Noul adapter, калибровки, нескольких model providers/route switching или доказанного выигрыша neural routing.
+8. **Evidence references не проверяют смысл.** Path/line/coverage guards предотвращают пустые и неверные ссылки, но не доказывают правильность объяснения reviewer. Общая точность одной модели и коррелированные ошибки четырёх ролей требуют live evaluation.
+9. **Protected command definition и paths не создают произвольный trusted oracle.** Checks и `protected_paths` неизменяемы в TaskSpec; final source diffs проверяются, ordinary repository tests остаются продуктовым кодом. Это результатные guards, не confinement исполнения и не защита от временного изменения и восстановления native-кодом. Полноценный hidden acceptance controller и отдельный evaluator security boundary ещё не предоставлены.
+10. **Context Shunt реализован частично.** Есть deterministic/targeted bounded context; нет отдельного cheap extraction tier, AST/symbol index, entailment validator, context compaction pipeline и автоматически доказанной экономии токенов.
+11. **Memory интегрирована консервативно, SESE пока выбирается отдельно.** Builder получает active records лишь для точного project/input SHA; independent reviewers их не получают. Успешный production run создаёт candidate episode, автоматической активации claim нет. Autonomous conflict resolution и strategy/probe execution loop ещё не включены. Skills интегрированы как pinned инструкции; install или declaration evidence сами по себе не доказывают безопасность.
+12. **Secret filtering имеет явные границы.** Явные task secrets и API key redaction поддерживаются в transport/export; нет надёжного определения неизвестных секретов, L0/local data classification или encrypted state store. Административные memory/skill inputs сохраняются как пользовательские данные; не записывайте туда секреты. `allow_remote` — осознанное разрешение отправки контекста выбранному endpoint.
+13. **Нет полноценных cache/replay/GC.** Service worktrees и receipts сохраняются для инспекции; есть reuse завершённых node outputs, но нет автоматической уборки, продолжения незавершённой model session и replay engine.
+14. **Кроссплатформенность ещё требует выполнения CI.** Есть conditional Unix/Windows code и три-OS workflow. Это не заменяет реальные результаты на Windows/macOS и измерения скорости на закреплённом hardware. Готовый Linux x86_64 executable требует glibc ≥2.39 и системные libc/libm/libgcc_s; для старой glibc нужна пересборка в целевой среде.
+
+## Соответствие этапам архитектуры
+
+| Этап | Состояние |
+|---|---|
+| Контракты и native foundation | Native Linux tests/build/release smoke подтверждены; измерен warm-FS `--version`; три-OS CI задан, Windows/macOS и остальные performance baselines требуют выполнения |
+| Один устойчивый агент | Есть real transport, tool loop, бюджет, durable журнал, recovery guards и completed-node reuse; требуется live evaluation и более полное восстановление незавершённых сессий |
+| Независимая приёмка | Реализованы четыре роли, exact-candidate checks, source-proof guards и integrated repair; hidden acceptance и качество ролей остаются открыты |
+| Многоагентный MVP | Есть DAG и worktree builders с интеграцией; deterministic fixture покрывает базовую схему; полномасштабная live приёмка ещё не выполнена |
+| Context/memory/neural routing | Базовый context, assessment, curated builder memory и postrun candidate episode в loop; полноценный shunt/route optimization и memory verification pipeline ещё не завершены |
+| Skills и SESE | Skill registry + runtime integration; selector CLI/API; автоматический experimental search/probe orchestration ещё не реализован |
+| Release validation | Частичные mechanical fixtures; 42 полных сценария, 30 live tasks/holdout и все OS/performance gates ещё не закрыты |
+
+Следующий цикл разработки: исполнить три-OS CI и измерить full startup/RSS/dispatch; добавить constrained isolated runtime и evaluator boundary; затем live pilot с независимыми oracles, model calibration и measurable context/strategy gains. Описание вызовов и примеры находятся в [README](../README.md) и [документации knowledge/skills/strategy](knowledge-skills-strategy.md).
