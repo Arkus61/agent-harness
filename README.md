@@ -1,244 +1,241 @@
-# Agent Harness 0.1.3
+<div align="center">
 
-Локальный харнесс для разработки на **Rust**: задача проходит через DAG, исполнителей в Git worktree, объединение изменений, командные проверки и независимые reviews требований, кода, тестов и безопасности. Есть CLI, сохранение состояния в SQLite, учёт токенов, отмена и явное разрешение неоднозначных результатов действий.
+# Agent Harness
 
-Версия **0.1.3**: **191 локальный Rust-тест PASS**, bounded context cache с проверкой источников, process limits, durable local outbox и исторический replay. **30/30 benchmark baseline/control пар** прошли независимые Linux-isolated проверки. Реальное ChatGPT-подключение работает; свежий H pilot остановился с `BLOCKED` после Codex timeout и unknown usage. **Полная готовность не подтверждена.** [Текущий отчёт](docs/VALIDATION_REPORT_0.1.3_2026-10-02.md), [JSON](docs/validation-summary-0.1.3-2026-10-02.json), [новые контракты](docs/LOCAL_RUNTIME_CONTRACTS.md). Результаты успешного live pilot **0.1.2** сохранены [отдельно](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md) и не сертифицируют новую версию.
+**Локальная среда для агентов разработки — от задачи до проверенного Git-кандидата.**
 
-## Сборка и быстрый пример
+[![CI](https://github.com/Arkus61/agent-harness/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Arkus61/agent-harness/actions/workflows/ci.yml) [![Version](https://img.shields.io/badge/version-0.1.3-7c3aed)](Cargo.toml) [![Rust](https://img.shields.io/badge/Rust-1.99.0-dea584?logo=rust)](rust-toolchain.toml) [![License: MIT](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 
-Если вы используете готовый Linux-архив, распакуйте его и запускайте executable из каталога пакета как `./bin/harness`. Например, `./bin/harness auth status` и `./bin/harness auth chatgpt --check`. Для команд ниже добавьте каталог `bin` пакета в `PATH` либо используйте полный путь к executable. Codex CLI устанавливается отдельно и тоже должен быть доступен в `PATH`.
+[Быстрый старт](#быстрый-старт) · [Подключение моделей](#подключение-моделей) · [Архитектура](#как-это-работает) · [Проверки](#проверки-и-статус) · [Документация](#документация)
 
-Нужны **Rust 1.99.0**, Cargo и Git в `PATH`. Версия toolchain закреплена в `rust-toolchain.toml`; rustup выбирает её для сборки этого репозитория. SQLite включён в сборку; отдельный сервер, Python, Node.js и Docker для native runtime не требуются.
+</div>
 
-```text
-cargo build --locked --release
-cargo test --locked --all-targets
+Харнесс разбивает задачу на план, запускает исполнителей в отдельных Git worktrees и объединяет их изменения. Затем проверяет кандидата командами проекта и четырьмя отдельными ревью: **требования, код, тесты и безопасность**. Результат сохраняется вместе с доказательствами и отчётом; перенос в целевую ветку выполняется явно.
+
+Ядро написано на **Rust**, состояние хранится локально в **SQLite**. Можно работать с **ChatGPT через официальный Codex CLI** или с **OpenAI-compatible моделью**, в том числе локальной.
+
+> **Статус: 0.1.3, активная разработка.** Сборка и контрактные тесты проходят на Linux, macOS и Windows. Полная оценка качества агентов ещё впереди; поддержка MCP запланирована.
+
+## Что уже умеет харнесс
+
+- **Параллельная работа.** План DAG, зависимости и владение путями; каждый исполнитель работает в своём worktree.
+- **Проверка результата.** Командные проверки и четыре ревью привязаны к конкретному кандидату.
+- **Контроль действий.** ToolGateway проверяет доступ к файлам и командам; запись учитывает хеш исходного файла.
+- **Сохраняемый запуск.** SQLite хранит события, результаты действий, бюджет и точки восстановления.
+- **Управление контекстом.** Ограниченный кеш с проверкой актуальности источников, память с явным подтверждением и версионированные навыки.
+- **Выбор модели.** Подписка ChatGPT или совместимый HTTP endpoint задаются в конфигурации задачи.
+
+## Быстрый старт
+
+### 1. Установите CLI
+
+Нужны **Git**, **Rust / Cargo** и C-компилятор для сборки встроенного SQLite. Версия Rust **1.99.0** закреплена в репозитории; [rustup](https://rustup.rs/) выбирает её автоматически.
+
+| Система | Инструменты сборки |
+| :--- | :--- |
+| Linux | C-компилятор и linker, например пакет `build-essential` в Ubuntu |
+| macOS | Xcode Command Line Tools: `xcode-select --install` |
+| Windows | Visual Studio Build Tools: C++, Windows SDK; **Developer PowerShell** |
+
+```sh
+git clone https://github.com/Arkus61/agent-harness.git
+cd agent-harness
+cargo install --path . --locked
+harness --version
 ```
 
-Executable: `target/release/harness` на Linux/macOS, `target/release/harness.exe` на Windows. Все команды ниже выполняются из корня проекта. На Linux/macOS:
+Cargo устанавливает `harness` в свой каталог `bin`, который должен быть в `PATH`. Во время работы ядру не нужны отдельный сервер SQLite, Python, Node.js или Docker. Codex CLI и инструменты оценивания устанавливаются отдельно.
 
-```bash
-# Эти существующие каталоги нужны rustup/Cargo внутри очищенного окружения checks.
+<details>
+<summary><b>Готовые бинарные сборки</b></summary>
+
+Откройте [успешный запуск GitHub Actions](https://github.com/Arkus61/agent-harness/actions/workflows/ci.yml) и скачайте архив из раздела **Artifacts**:
+
+| Сборка | Архив | Исполняемый файл |
+| :--- | :--- | :--- |
+| Linux x86_64 | `harness-Linux-X64` | `harness` |
+| macOS ARM64 | `harness-macOS-ARM64` | `harness` |
+| Windows x86_64 | `harness-Windows-X64` | `harness.exe` |
+
+Распакуйте архив и добавьте каталог с файлом в `PATH`. На Unix при необходимости выполните `chmod +x harness`. Сохраняйте имя `harness` / `harness.exe`: CLI использует собственный executable для запуска supervisor.
+
+Linux-сборка из Ubuntu 24.04 требует **glibc ≥ 2.39** и системные `libc`, `libm`, `libgcc_s`. Для другой среды соберите проект из исходников. Артефакты Actions имеют ограниченный срок хранения.
+
+</details>
+
+### 2. Запустите демо
+
+Оставайтесь в каталоге клона. На Linux / macOS:
+
+```sh
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
-./target/release/harness doctor
-./target/release/harness demo --dir ../harness-demo
-./target/release/harness --repo ../harness-demo status
+harness doctor
+harness demo --dir ../harness-demo
+harness --repo ../harness-demo status
 ```
 
-На Windows для Rust/MSVC нужны Visual Studio Build Tools с компонентами C++ и Windows SDK. Запускайте команды из **Developer PowerShell** или **Developer Command Prompt** Visual Studio, чтобы MSVC linker и SDK были доступны проверкам проекта. В Developer PowerShell:
+<details>
+<summary><b>Те же команды в Windows Developer PowerShell</b></summary>
 
 ```powershell
 if (-not $env:CARGO_HOME) { $env:CARGO_HOME = Join-Path $env:USERPROFILE ".cargo" }
 if (-not $env:RUSTUP_HOME) { $env:RUSTUP_HOME = Join-Path $env:USERPROFILE ".rustup" }
-.\target\release\harness.exe doctor
-.\target\release\harness.exe demo --dir ..\harness-demo
-.\target\release\harness.exe --repo ..\harness-demo status
+harness doctor
+harness demo --dir ..\harness-demo
+harness --repo ..\harness-demo status
 ```
 
-Если Rust установлен в других каталогах, укажите их. Native command runtime сохраняет `PATH`, необходимые системные переменные и `CARGO_HOME`/`RUSTUP_HOME`/`RUSTUP_TOOLCHAIN`; остальные переменные окружения не передаются автоматически. Сохраните имя executable `harness` (`harness.exe` на Windows): он запускает собственный доверенный supervisor. При использовании Rust library этот CLI должен быть доступен в поддерживаемом расположении; произвольный host executable не заменяет supervisor.
+</details>
 
-Для Linux isolation установите `bubblewrap` и проверьте `harness doctor`: `runtime_profiles.isolated.available` становится `true` только после реального namespace probe. Задайте `"profile":"isolated"` в task. Команды получают отдельные filesystem/PID/network namespaces, пустой home, скрытые credential paths и read-only trusted toolchain mounts. Workspace остаётся ресурсом команды; это не syscall ownership каждого файла. `protected_paths` замораживаются mounts, а отсутствующий prefix может заморозить ближайший существующий родительский каталог. CPU/RAM/disk quotas пока не реализованы. Cache с legacy Cargo Git registry может не работать offline после скрытия `.git` metadata; заранее проверьте зависимости в выбранном профиле.
+Если Rust установлен в других каталогах, укажите их в `CARGO_HOME` и `RUSTUP_HOME`: проверки проекта запускаются с очищенным окружением.
 
-Готовый Linux x86_64 executable требует **glibc ≥ 2.39** и системные `libc`, `libm`, `libgcc_s`. Для старой glibc пересоберите исходники в целевой среде. Сборки Linux/macOS/Windows и результаты проверок публикуются в [GitHub Actions](https://github.com/Arkus61/agent-harness/actions/workflows/ci.yml); бинарные артефакты доступны после успешного завершения соответствующего job. Локальные отчёты выше относятся к указанным в них замороженным исходникам и executable.
+Демо создаёт небольшой Rust-проект, исправляет ошибку `clamp`, выполняет настоящие тесты и четыре ревью с заранее заданными ответами. Каталог `harness-demo` должен быть **новым и ещё не существовать**.
 
-`demo` требует **новый, ещё не существующий каталог**. Он создаёт маленький Git/Rust-проект, исправляет ошибку `clamp`, запускает настоящие `cargo test --offline` и четыре scripted reviews. Ожидаемое состояние — **`FIXTURE_VERIFIED`**. Это демонстрация механики: scripted ответы не подтверждают качество модели, не получают production `VERIFIED` и не допускаются к `merge`. Исходный `HEAD` демо-проекта остаётся на baseline; кандидат находится в report и worktree.
+Ожидаемый результат — **`FIXTURE_VERIFIED`**. Он подтверждает работу механики демо. Качество модели проверяется отдельными запусками; демонстрационный кандидат не допускается к `merge`. Исходный `HEAD` остаётся на baseline, поэтому этот же проект можно использовать для первого запуска с моделью.
 
-Далее для удобства добавьте executable в `PATH` либо заменяйте `harness` полным путём к нему. Из исходников эквивалентный префикс: `cargo run --locked --bin harness --`.
+## Подключение моделей
 
-## Запуск с настоящей моделью
+### ChatGPT через Codex CLI
 
-Поддерживаются **ChatGPT через Codex CLI** и **OpenAI-compatible Chat Completions**. Оба backend возвращают типизированный `ModelReply`; файловые действия и команды выполняет ToolGateway харнесса.
+Установите [официальный Codex CLI](https://developers.openai.com/codex/cli), добавьте `codex` в `PATH` и выполните:
 
-### Подписка ChatGPT
-
-Установите [официальный Codex CLI](https://developers.openai.com/codex/cli) и добавьте `codex` в `PATH`. Затем:
-
-```text
+```sh
 harness auth status
 harness auth chatgpt --device --check
-harness --repo "../harness-demo" run --task "examples/task-chatgpt.json"
+harness --repo ../harness-demo run --task examples/task-chatgpt.json
 ```
 
-`auth chatgpt` использует существующий вход ChatGPT либо запускает официальный `codex login`. Для headless-среды `--device` выбирает `codex login --device-auth`: пользователь проходит вход в браузере, Codex сохраняет и обновляет credentials. `--check` делает настоящий короткий запрос модели и проверяет JSON-ответ и usage. Без этого флага проверяется вход, а не генерация. Для установки вне `PATH` есть `--codex-program "/path/to/codex"`; тот же путь задаётся в task provider.
+Используется существующий вход ChatGPT либо официальный вход через браузер. Флаг `--check` делает короткий **настоящий запрос модели** и проверяет ответ с телеметрией расхода.
 
-Официальный вход ChatGPT подтверждён: аккаунт сообщает **Plus**, модель **`gpt-6.1-sol`** отвечает структурированным JSON с полной usage telemetry. На **0.1.2** все 18 native trials дошли до VERIFIED, checks и четырёх reviews; exact-candidate bindings проверены, unknown calls и reservations равны нулю. Внешняя приёмка приняла **15 кандидатов исходным oracle + 3 Q03 отдельным исправленным AST grader**, без новых model calls или замены original FAIL receipts. Отдельный полный isolated Q02 также прошёл внешний oracle. [Подробный отчёт](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md); полный 30-task benchmark не выполнен. [Результат подключения](docs/chatgpt-connection-check.json). Исторические **0/18** относятся к [выпуску 0.1.1](docs/VALIDATION_REPORT_2026-10-02.md).
+В [примере задачи](examples/task-chatgpt.json) пустой `provider.model` выбирает модель по умолчанию для аккаунта. Доступные модели показывает `auth status`; для воспроизводимых запусков задайте имя явно. Конфигурация содержит `allow_remote: true`: доступный контекст задачи отправляется сервису Codex. Учётные данные хранит официальный CLI.
 
-[Готовая задача](examples/task-chatgpt.json) содержит `kind: "chatgpt"` и обязательное `allow_remote: true`. Пустой `model` использует default Codex для аккаунта; доступные модели показывает `auth status`, выбранную можно задать в task и проверить через `--model MODEL`. Контекст отправляется сервису Codex. Credentials остаются в хранилище официального CLI; не помещайте их в проект, чат или архив.
+Применяются лимиты Codex текущего аккаунта. API оплачивается отдельно. Совместимость адаптера проверялась с **Codex CLI 0.159.0-alpha.3**; после обновления CLI повторите проверку соединения. [Настройка и ограничения →](docs/CHATGPT_SUBSCRIPTION.md)
 
-Используются лимиты Codex, доступные текущему ChatGPT-аккаунту. API оплачивается отдельно; это подключение не создаёт API-кредитов и не означает безлимит. У Codex backend нет жёсткого output-token cap: `max_output_tokens` здесь мягкая квота, а резервация содержит дополнительную оценку 16 КиБ. Фактический расход сохраняется; превышение root budget блокирует продолжение. [Настройка, протокол и ограничения](docs/CHATGPT_SUBSCRIPTION.md).
+### Локальная или OpenAI-compatible модель
 
-### OpenAI-compatible backend
+Запустите совместимый сервер, например Ollama. В [task-local.json](examples/task-local.json) укажите установленную модель и адрес сервера; пример использует `http://127.0.0.1:11434/v1`.
 
-Провайдер должен принимать `response_format: {"type":"json_object"}`, возвращать один JSON-ответ с `finish_reason: "stop"` и полные `usage.prompt_tokens`/`usage.completion_tokens`. Markdown вокруг JSON, неизвестные поля, усечённый ответ и malformed JSON отклоняются. Возможность модели выполнять этот контракт определяется выбранным backend и вашей проверкой, а не именем провайдера.
-
-Перед запуском нужен Git-репозиторий с хотя бы одним commit и чистыми **tracked** файлами. В worktree переносится committed baseline; произвольные untracked файлы исходной рабочей директории не копируются. Зависимости для `--offline` должны быть доступны заранее, а lockfile — закоммичен.
-
-Для запуска на проекте `harness-demo` используйте [готовый task-local.json](examples/task-local.json) либо сохраните следующий JSON как отдельный `task-local.json`. В другом проекте замените описание, scopes и checks под его контракт.
-
-```json
-{
-  "schema_version": 1,
-  "prompt": "Исправь clamp в src/lib.rs для low <= high и добавь regression tests.",
-  "requirements": [
-    "Значение ниже low возвращает low, выше high — high, внутри интервала сохраняется.",
-    "Добавлены regression tests для всех трёх случаев."
-  ],
-  "grants": {
-    "read": ["src/**", "Cargo.toml", "Cargo.lock"],
-    "write": ["src/**"],
-    "commands": []
-  },
-  "checks": [
-    {"program": "cargo", "args": ["test", "--locked", "--offline"], "timeout_secs": 120}
-  ],
-  "protected_paths": ["acceptance/**"],
-  "provider": {
-    "kind": "open_ai",
-    "base_url": "http://127.0.0.1:11434/v1",
-    "model": "qwen2.5-coder:7b",
-    "api_key_env": "",
-    "allow_remote": false
-  },
-  "nodes": [
-    {"id": "fix", "prompt": "Исправь src/lib.rs и тесты.", "requirements": [0, 1], "depends_on": [], "owned_paths": ["src/**"]}
-  ],
-  "profile": "native-trusted",
-  "decision_mode": "enforced",
-  "budget": {"max_tokens": 250000, "max_output_tokens": 4096, "deadline_secs": 1800},
-  "concurrency": 2,
-  "max_steps": 20,
-  "max_repairs": 2,
-  "context_bytes": 48000,
-  "secrets": [],
-  "skills": []
-}
+```sh
+harness --repo ../harness-demo run --task examples/task-local.json
 ```
 
-Локальный Ollama должен быть запущен и иметь выбранную модель; замените `model` своей установленной моделью. Этот пример конфигурации не означает, что конкретная модель уже прошла live benchmark харнесса.
+Backend должен поддерживать JSON-ответ через `response_format` и возвращать полную `usage` с `finish_reason: "stop"`. Модель из примера — образец конфигурации; её качество отдельно не подтверждено.
 
-```text
-harness --repo "../harness-demo" doctor
-harness --repo "../harness-demo" run --task "examples/task-local.json"
+Для удалённого OpenAI-compatible endpoint задайте HTTPS-адрес, `allow_remote: true` и имя переменной с ключом в `api_key_env`. Ключ хранится в окружении, а не в JSON задачи.
+
+### Задача для своего проекта
+
+Возьмите один из примеров и настройте `prompt`, `requirements`, разрешения `grants`, проверки `checks` и защищённые пути `protected_paths`. Явный DAG задаётся в `nodes`; пустой список включает планирование моделью.
+
+Проект должен быть Git-репозиторием с commit и чистыми tracked-файлами. Worktree создаётся из committed baseline; незакоммиченные файлы в него не переносятся. Для offline-проверок заранее подготовьте зависимости и закоммитьте lockfile.
+
+```sh
+harness --repo /path/to/project run --task /path/to/task.json
 ```
 
-Чтобы модель составляла DAG сама, уберите `nodes` или задайте `[]`. Явный план проверяется на покрытие требований, циклы, зависимости и пересечение ownership параллельных узлов. Индексы требований начинаются с нуля. `concurrency` ограничивает builders и одновременные model calls.
+Пути к task-файлам разрешаются относительно текущего каталога. Параметр `--repo` выбирает репозиторий, в котором выполняется задача.
 
-Для удалённого backend замените только объект `provider`:
+## Как это работает
 
-```json
-{
-  "kind": "open_ai",
-  "base_url": "https://api.openai.com/v1",
-  "model": "YOUR_COMPATIBLE_MODEL",
-  "api_key_env": "HARNESS_MODEL_API_KEY",
-  "allow_remote": true
-}
+```mermaid
+flowchart LR
+    T["TaskSpec<br/>и план DAG"] --> W["Исполнители<br/>Git worktrees"]
+    W --> C["Объединённый<br/>кандидат"]
+    C --> K["Командные проверки<br/>и 4 ревью"]
+    K --> V["VERIFIED<br/>готов к публикации"]
+    K -->|нужны исправления| F["Repair<br/>в пределах бюджета"]
+    F --> C
+    G["ToolGateway<br/>права · хеши · квитанции"] -.-> W
+    S[("SQLite<br/>события · бюджет · checkpoints")] -.-> C
 ```
 
-Задайте `HARNESS_MODEL_API_KEY` через своё окружение или менеджер секретов. Ключ не помещается в task JSON. Для внешних адресов обязательны `allow_remote: true` и HTTPS; URL с credentials/query/fragment отклоняется, redirects не выполняются. Явное разрешение remote означает разрешение отправлять этому endpoint доступный контекст задачи. Автоматического классификатора неизвестных секретов или ограничения сети произвольных native-команд пока нет.
+Модель предлагает типизированные действия; выполняет их **ToolGateway**. Ревью получают требования, diff и результаты проверок. Режим `enforced` также требует допустимых оценок решений `model`, `tools` и `risk` в рамках уже выданных разрешений.
 
-## Инструменты и приёмка
+**`VERIFIED`** означает, что кандидат прошёл настроенные проверки и обязательные ревью. Истинность объяснений модели и качество решения оцениваются внешним oracle. `BLOCKED`, неизвестный расход токенов или незавершённое действие требуют разбора; автоматическое продолжение зависит от сохранённых квитанций.
 
-Model response использует типизированный контракт. Пример последовательности для существующего файла:
+### Профили исполнения
 
-```json
-{"actions":[{"type":"read_file","path":"src/lib.rs"}],"done":false}
-```
+| Профиль | Где доступен | Что означает |
+| :--- | :--- | :--- |
+| `native-trusted` | Linux, macOS, Windows | Команды проекта выполняются с правами пользователя; это доверенный локальный запуск |
+| `isolated` | Linux, после успешного probe | Bubblewrap: отдельные filesystem / PID / network namespaces и ограниченные mounts |
 
-Для небольшого файла следующий ответ содержит **полный** новый UTF-8 файл и `expected_hash` из квитанции исходного snapshot:
+`harness doctor` показывает реальные возможности среды. Для `isolated` нужны bubblewrap и разрешённое создание namespaces; доступность подтверждается запуском probe. Если профиль недоступен, задача блокируется.
 
-```json
-{"actions":[{"type":"write_file","path":"src/lib.rs","content":"FULL_NEW_FILE_CONTENT","expected_hash":"HASH_FROM_COMPLETE_READ_RECEIPT"}],"done":true}
-```
+Unix поддерживает отдельные лимиты процессов по возможностям ОС; суммарные квоты CPU / RAM / disk для дерева процессов и resource limits на Windows ещё не реализованы. Запрос неподдерживаемого лимита отклоняется. [Контракты исполнения →](docs/LOCAL_RUNTIME_CONTRACTS.md)
 
-Чтобы исправить небольшой участок без передачи всего нового файла, используйте `edit_file`:
+## Управление результатами
 
-```json
-{"actions":[{"type":"edit_file","path":"src/lib.rs","old":"value.min(low).max(high)","new":"value.max(low).min(high)","expected_hash":"HASH_FROM_SOURCE_SNAPSHOT_RECEIPT"}],"done":true}
-```
+Все команды возвращают JSON. Идентификатор запуска берётся из `run.id` в отчёте или из `status`.
 
-`old` должен быть непустым и встречаться **ровно один раз**, включая пересекающиеся совпадения. Нет совпадения, несколько совпадений или stale hash — отказ без изменения файла. Edit применяется атомарно с повторной проверкой source hash; действует тот же write scope и ownership.
+| Действие | Команда |
+| :--- | :--- |
+| Список запусков | `harness --repo PROJECT status` |
+| Подробности | `harness --repo PROJECT inspect RUN_ID` |
+| Сохранить отчёт | `harness --repo PROJECT report RUN_ID --output report.json` |
+| Запросить отмену | `harness --repo PROJECT cancel RUN_ID` |
+| Продолжить допустимый checkpoint | `harness --repo PROJECT resume RUN_ID` |
+| Проверить историческую проекцию | `harness --repo PROJECT replay RUN_ID` |
 
-Запись существующего файла без hash и с устаревшим hash отклоняется. `read_file` возвращает ограниченный prefix с явным маркером усечения, но full-source BLAKE3 вычисляется потоковым чтением одного snapshot. Hash целостности не означает, что модель видела пропущенный код; перед edit нужно получить точный изменяемый snippet. Исходный UTF-8 файл и результат partial edit ограничены 64 МиБ. Поиск — ограниченный по scope и объёму; отсутствие совпадений не доказывает отсутствие вне рассмотренной области.
+`resume` сохраняет исходные бюджет и deadline. Отменённые и уже проверенные запуски не возобновляются; неизвестные эффекты и расход сначала требуют подтверждения через `reconcile` / `settle`.
 
-Gateway проверяет read/write grants, ownership и запрет writes/commands для reviewers. `run_command` разрешается только указанным `program` и `args_prefix`; shell не подставляется автоматически. Пустой `commands` в примере запрещает builder запускать команды, но координатор исполняет пользовательские protected `checks`. Сам executable и `checks` входят в доверенную конфигурацию пользователя: объявление `cargo test` не делает тестируемый код безопасным.
+`merge` публикует только `VERIFIED`-кандидат: выполняет fast-forward существующей локальной ветки, которая не открыта в worktree, и проверяет ожидаемый SHA. Команда не выполняет push. Состояние и рабочие деревья находятся в `<git-common-dir>/harness/`.
 
-`protected_paths` задаёт неизменяемые acceptance-источники, например `acceptance/**`; по умолчанию список пуст. Такие paths нельзя изменить через файловый Gateway. Изменения native-команды дополнительно проверяются перед завершением builder и на объединённом кандидате относительно исходного baseline. Продуктовые тесты в разрешённом `src/**` можно исправлять и дополнять; защищённые acceptance-тесты остаются прежними. Это проверка целостности результата, а не ограничение прав native-процесса: недоверенный код мог выполнить внешний эффект до отказа. Для adversarial hidden evaluation нужен отдельный доверенный oracle-controller и ограниченная среда исполнения.
+[Команды восстановления, публикации и примеры инструментов →](docs/CLI_GUIDE.md)
 
-DecisionService получает оценки `model`, `tools` и `risk` через configured provider. Каждый запрос содержит отдельный typed subject, UUID, effective scope с runtime profile и BLAKE3 binding; ответ обязан вернуть тот же hash. Model choice статичен, assessment не включает дополнительные tools. В `enforced` отказ или воздержание блокируют действие; в `shadow` корректная оценка наблюдается, но не расширяет grants. Некорректный assessment не становится разрешением. Это typed neural assessment, а не отдельный Jev SDK или автоматическая маршрутизация между моделями. [Точный контракт](docs/DECISION_CONTRACT.md).
+## Проверки и статус
 
-После объединения всех дельт проверки выполняются на точном кандидате. Command check требует успешный exit, отсутствие timeout/cancellation и неизменённый candidate. Четыре reviewer-сессии получают исходные требования, candidate, diff и command receipts; private reasoning и самооценка builder не передаются.
+[CI от 2 октября 2026](https://github.com/Arkus61/agent-harness/actions/runs/37003661236) на commit **`bc4d3c2`** успешно завершился на трёх платформах:
 
-Production `PASS` требует `proofs` вида `{ "requirement": 0, "path": "src/lib.rs", "line": 1, "explanation": "..." }`. Харнесс проверяет существование допустимого пути, строки и покрытие всех требований в requirements-review. **Существование ссылки не доказывает истинность объяснения**; семантическое качество остаётся предметом независимой оценки. `UNKNOWN`, `ERROR`, отсутствие доказательства или blocker не дают `VERIFIED`.
+| Проверка | Linux x86_64 | macOS ARM64 | Windows x86_64 |
+| :--- | :---: | :---: | :---: |
+| Основные Rust-тесты | **191 PASS** | **178 PASS** | **163 PASS** |
+| Независимые AST-oracle тесты | 10 PASS | 10 PASS | 10 PASS |
+| Python: oracle и контроллер оценивания | 46 PASS | 44 PASS · 2 skip | 44 PASS · 2 skip |
+| `fmt`, `clippy`, release build | PASS | PASS | PASS |
+| Изолированные baseline/control пары | **30/30 PASS** | — | — |
 
-Repair начинается от объединённого кандидата и повторяет все обязательные проверки. Для одного repair используется общий владелец разрешённых write scopes. Публикация выполняется отдельной командой после production `VERIFIED`.
+Один ручной live subscription smoke исключён из автоматического прогона на каждой платформе. Разное количество тестов связано с возможностями ОС. Baseline/control проверки подтверждают корректность корпуса задач и критериев; они не вызывают модель.
 
-## Управление запуском и восстановление
+Исторический live pilot **0.1.2** прошёл 18/18 внешних приёмок, включая три случая с исправленным дополнительным grader. Свежий pilot **0.1.3** остановился с `BLOCKED` после Codex timeout и неизвестного usage. Эти результаты сохранены в отчётах и относятся к зафиксированным в них исходникам. Полный сравнительный benchmark **270 запусков** ещё не выполнен.
 
-Команды печатают JSON. `run`/`resume` возвращают exit 0 для `VERIFIED` или `FIXTURE_VERIFIED`, exit 2 для непрошедшего запуска; CLI/validation error — exit 1. Получите `RUN_ID` из `run.id` либо `status`.
+<details>
+<summary><b>Проверки для разработки</b></summary>
 
-```text
-harness --repo "PROJECT" status
-harness --repo "PROJECT" status "RUN_ID"
-harness --repo "PROJECT" inspect "RUN_ID"
-harness --repo "PROJECT" report "RUN_ID" --output "report.json"
-harness --repo "PROJECT" cancel "RUN_ID"
-harness --repo "PROJECT" resume "RUN_ID"
-```
-
-`cancel` сохраняет запрос в SQLite; активный координатор наблюдает его. Ctrl+C также запрашивает отмену. Уже проверенный результат неизменяем. Это best-effort остановка native process tree, не ограничение намеренно отделившегося недоверенного процесса.
-
-После потерянного receipt `resume` блокируется: действие могло выполниться. Найдите `ACTION_ID` в событиях `action_intent`, проверьте состояние реального эффекта и явно сохраните доказательство:
-
-```text
-harness --repo "PROJECT" reconcile "RUN_ID" --action "ACTION_ID" --status not_executed --evidence "Описание независимой проверки отсутствия эффекта"
-harness --repo "PROJECT" reconcile "RUN_ID" --action "ACTION_ID" --status completed --evidence "Идентификатор и результат проверки выполненного эффекта"
-```
-
-Выбирается **один** подтверждённый статус. Административное evidence — заявление пользователя, CLI не проверяет произвольный внешний сервис.
-
-Если провайдер мог начислить usage, резервация сохраняется. Найдите `CALL_ID` в `model.intent`/`model.unknown`; получите точные токены из провайдера и запишите их:
-
-```text
-harness --repo "PROJECT" settle "RUN_ID" --call "CALL_ID" --input-tokens 123 --output-tokens 45 --evidence "Ссылка или идентификатор квитанции провайдера"
-```
-
-Числа в примере заменяются проверенными значениями. Не используйте нули для освобождения неизвестных расходов. `resume` сохраняет исходный root budget, deadline и расход repair rounds, повышает generation и восстанавливает последний сохранённый план и его baseline. Завершённые node outputs переиспользуются после проверки совместимости входного дерева зависимостей; незавершённые nodes строятся заново. Диалог модели с точного шага не восстанавливается. Выполненная команда незавершённого builder attempt блокирует автоматический replay; такой checkpoint требует инспекции и явно новой задачи. Cancelled и verified запуски не возобновляются.
-
-Для публикации создайте/выберите существующую локальную ветку, не открытую ни в одном worktree; получите её текущий SHA:
-
-```text
-git -C "PROJECT" branch harness-result "BASE_SHA"
-git -C "PROJECT" rev-parse refs/heads/harness-result
-harness --repo "PROJECT" merge "RUN_ID" --target refs/heads/harness-result --expected "CURRENT_TARGET_SHA"
-```
-
-Подставьте реальные SHA. `merge` выполняет только fast-forward через compare-and-swap target ref. Команда не делает push, не меняет checked-out ветку и отказывает scripted результатам.
-
-## Память, навыки и стратегии
-
-Подсистемы доступны через `memory add/promote/search/list`, `skills install/list/quarantine/resolve` и `strategy --input`. Память требует явного source fingerprint и promotion. Builder получает до пяти применимых **active** записей для своего project и точного входного commit; independent reviewers эти записи не получают. После production `VERIFIED` сохраняется episode в статусе **candidate**, требующем отдельного подтверждения; ошибка записи памяти не отменяет результат задачи.
-
-Skills закрепляются `id@version`, проверяются на capabilities и добавляются в task prompt. StrategySelector сравнивает hard constraints, сопоставимые measurements и Pareto frontier; probes автоматически не исполняются. Стратегия выбирается отдельной командой и явно оформляется в TaskSpec; automatic strategy/probe loop ещё не включён. [Контракты, примеры и ограничения этих подсистем](docs/knowledge-skills-strategy.md).
-
-## Хранилище и проверки
-
-Состояние хранится в `<git-common-dir>/harness/`: SQLite WAL/FULL, события, action intents/receipts, резервации, content-addressed объекты и worktrees. Locks привязаны к общему Git directory. Используйте локальный диск; сохранность после отключения питания и работа на сетевых файловых системах отдельно не сертифицированы. Служебные worktrees сохраняются для инспекции; автоматического GC пока нет.
-
-```text
+```sh
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked --all-targets
+cargo test --locked --all-targets --no-fail-fast
 harness eval
 ```
 
-`eval` выполняет ограниченный набор **component fixture assertions** с отдельными критериями и доказательствами. Он не означает прохождение всех 42 сценариев, 30 live-задач или cross-platform certification. [План оценивания и критерии](docs/EVALUATION_PLAN.md) связывает существующие проверки с [машиночитаемым каталогом сценариев](evals/scenarios.json). CI настроен для Linux/macOS/Windows; результат настройки CI отличается от фактически завершённых запусков. [Матрица реализованного и оставшаяся работа](docs/IMPLEMENTATION_STATUS.md).
+`eval` запускает компонентные проверки с заданными ответами. Независимые oracle и benchmark-корпус описаны в [evals/live](evals/live/README.md) и [evals/benchmark](evals/benchmark/README.md); для их контроллера нужен Python. Полный состав CI задан в [workflow](.github/workflows/ci.yml).
 
-Свежий прогон **2026-10-02** для финального source **0.1.2** на Linux подтвердил **129 тестов**: 85 library, 3 Codex CLI, 14 Codex protocol, 6 contracts, 7 end-to-end, 7 isolation, 1 parallel failure, 3 parent-death и 3 security regressions. Также прошли fmt, clippy всех targets с `-D warnings` и release build. Восемь реальных Linux boundary checks входят в это число; доступность backend обязательна в данном прогоне. Отдельный реальный subscription smoke не входит в 129 обычных тестов.
+</details>
 
-Release **0.1.2** прошёл `eval` и `demo`: **20/20** component assertions и `FIXTURE_VERIFIED`. Supervisor tests подтвердили остановку ordinary native descendants и Codex helper после SIGKILL владельца. Warm CLI p95: **2,482 мс** для `--version`, **28,685 мс** для `doctor`, **14,011 мс** для `eval`; измерения шли одновременно с одним live pilot и не означают full startup/RSS benchmark. [Методика и результаты](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md).
+### Ближайшие этапы
 
-В [live pilot](evals/live/README.md) исполнены шесть Rust-задач × три fresh trials: **18 VERIFIED**, independent acceptance **18/18 = 15 original + 3 supplemental PASS**, binding failures **0**. [Q03 amendment](artifacts/contract-validation/oracle-amendment/summary.json) сохраняет исходные FAIL receipts и фиксирует исправление границы функции grader. Отдельный isolated Q02 прошёл за **115,177 с**; сам внешний oracle выполнялся native-trusted. Аудит тестов шести representative candidates подтвердил assertions и negative controls; он не распространяется на остальные варианты. Полные 42 сценария, frozen benchmark 30 задач и Windows/macOS остаются незакрытыми. [Подробный отчёт](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md).
+| Направление | Следующий шаг |
+| :--- | :--- |
+| **MCP** | Клиентский адаптер через общий ToolGateway, проверка разрешений и протокольные тесты. В текущей версии MCP не реализован; унаследованные MCP-серверы Codex отключены |
+| **Качество агентов** | Реализовать режимы B0 / B1 и выполнить сравнение с H; полный benchmark и независимая оценка reviewer-ролей |
+| **Изоляция** | Backend для macOS / Windows и суммарные ресурсные квоты |
+| **Длительные задачи** | Семантическое сокращение контекста, автоматический GC и цикл выбора стратегий |
 
-Архитектурные основания: [единый план](docs/ARCHITECTURE_PLAN.md) и [сравнение предложений](docs/ARCHITECTURE_COMPARISON.md).
+## Документация
+
+| Что нужно узнать | Где читать |
+| :--- | :--- |
+| Архитектура и принятые решения | [Единый план](docs/ARCHITECTURE_PLAN.md) · [Сравнение предложений](docs/ARCHITECTURE_COMPARISON.md) |
+| CLI, восстановление и публикация | [Практический справочник](docs/CLI_GUIDE.md) |
+| Подписка ChatGPT и протокол Codex | [Подключение ChatGPT](docs/CHATGPT_SUBSCRIPTION.md) |
+| Runtime, контекст, outbox и replay | [Локальные контракты](docs/LOCAL_RUNTIME_CONTRACTS.md) |
+| Решения model / tools / risk | [Контракт оценок](docs/DECISION_CONTRACT.md) |
+| Память, навыки и стратегии | [Контракты подсистем](docs/knowledge-skills-strategy.md) |
+| Сценарии и критерии оценивания | [План оценивания](docs/EVALUATION_PLAN.md) · [Каталог сценариев](evals/scenarios.json) |
+| Отчёты локальных выпусков | [0.1.3](docs/VALIDATION_REPORT_0.1.3_2026-10-02.md) · [0.1.2](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md) |
+
+---
+
+Распространяется по лицензии **[MIT](LICENSE)**.
