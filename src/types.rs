@@ -42,6 +42,9 @@ fn api_url() -> String {
 fn key_env() -> String {
     "OPENAI_API_KEY".into()
 }
+fn codex_program() -> String {
+    "codex".into()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -141,6 +144,16 @@ impl TaskSpec {
                 "provider must be HTTP(S)"
             );
         }
+        if self.provider.kind == ProviderKind::Chatgpt {
+            anyhow::ensure!(
+                self.provider.allow_remote,
+                "ChatGPT provider requires allow_remote=true"
+            );
+            anyhow::ensure!(
+                !self.provider.codex_program.trim().is_empty(),
+                "codex_program is required"
+            );
+        }
         Ok(())
     }
 }
@@ -212,6 +225,7 @@ pub enum ProviderKind {
     #[default]
     Scripted,
     OpenAi,
+    Chatgpt,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -228,6 +242,8 @@ pub struct ProviderConfig {
     pub allow_remote: bool,
     #[serde(default)]
     pub scripts: BTreeMap<String, Vec<ModelReply>>,
+    #[serde(default = "codex_program")]
+    pub codex_program: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -323,6 +339,7 @@ pub struct Finding {
     pub evidence: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RequirementProof {
     pub requirement: usize,
     pub path: String,

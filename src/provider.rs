@@ -33,6 +33,20 @@ struct ProviderInner {
 
 impl Provider {
     pub fn new(config: &ProviderConfig, secrets: &[String]) -> Result<Self> {
+        if config.kind == ProviderKind::Chatgpt {
+            ensure!(
+                config.allow_remote,
+                "ChatGPT provider requires allow_remote=true"
+            );
+            ensure!(
+                !config.codex_program.trim().is_empty(),
+                "codex_program is required"
+            );
+            ensure!(
+                config.model.len() <= 512,
+                "Codex model identifier exceeds the limit"
+            );
+        }
         let endpoint = if config.kind == ProviderKind::OpenAi {
             ensure!(
                 !config.model.trim().is_empty(),
@@ -64,6 +78,15 @@ impl Provider {
                     .any(|secret| endpoint.as_str().contains(secret)
                         || config.model.contains(secret)),
                 "explicit secret appears in provider URL or model identifier"
+            );
+        }
+        if config.kind == ProviderKind::Chatgpt {
+            ensure!(
+                !redactions
+                    .iter()
+                    .filter(|s| !s.is_empty())
+                    .any(|s| config.model.contains(s)),
+                "explicit secret appears in provider model identifier"
             );
         }
         // Redirects are never followed: they could change the authorized destination.
@@ -128,6 +151,12 @@ impl Provider {
                 (serde_json::to_vec(reply)?.len() as u64).div_ceil(4) <= max_output_tokens,
                 "fixture response exceeds output token limit"
             );
+        } else if self.inner.config.kind == ProviderKind::Chatgpt {
+            self.codex_input(system, user, max_output_tokens)?;
+            ensure!(
+                program_available(&self.inner.config.codex_program),
+                "Codex CLI is unavailable; install Codex and run codex login"
+            );
         } else {
             self.request_body(system, user, max_output_tokens)?;
         }
@@ -147,6 +176,14 @@ impl Provider {
                 .len()
                 .saturating_add(user.len())
                 .saturating_add(protocol_overhead_bytes())
+        } else if self.inner.config.kind == ProviderKind::Chatgpt {
+            let (instructions, user) = self.codex_input(system, user, max_output_tokens)?;
+            // Codex adds internal context and has no hard output-token cap. This is
+            // a reservation estimate; actual cumulative usage is settled afterwards.
+            instructions
+                .len()
+                .saturating_add(user.len())
+                .saturating_add(16_384)
         } else {
             self.request_body(system, user, max_output_tokens)?
                 .len()
@@ -181,6 +218,23 @@ impl Provider {
         Ok(request)
     }
 
+    fn codex_input(
+        &self,
+        system: &str,
+        user: &str,
+        max_output_tokens: u64,
+    ) -> Result<(String, String)> {
+        ensure!(max_output_tokens > 0, "output token limit must be positive");
+        let instructions = format!(
+            "{}\n\n{}",
+            redact(system, &self.inner.secrets),
+            response_contract()
+        );
+        let user = redact(user, &self.inner.secrets);
+        crate::codex::validate_input(&instructions, &user, max_output_tokens)?;
+        Ok((instructions, user))
+    }
+
     pub async fn complete(
         &self,
         session: &str,
@@ -191,6 +245,18 @@ impl Provider {
     ) -> Result<ProviderResponse> {
         ensure!(max_output_tokens > 0, "output token limit must be positive");
         ensure!(!cancel.is_cancelled(), "model request cancelled");
+        if self.inner.config.kind == ProviderKind::Chatgpt {
+            let (instructions, user) = self.codex_input(system, user, max_output_tokens)?;
+            return crate::codex::complete(
+                &self.inner.config.codex_program,
+                &self.inner.config.model,
+                &instructions,
+                &user,
+                max_output_tokens,
+                cancel,
+            )
+            .await;
+        }
         if self.is_fixture() {
             let mut cursors = self
                 .inner
@@ -268,6 +334,28 @@ impl Provider {
         }
         parse_response(&bytes, max_output_tokens)
     }
+}
+
+fn program_available(program: &str) -> bool {
+    let path = std::path::Path::new(program);
+    if path.is_absolute() || path.components().count() > 1 {
+        return path.is_file();
+    }
+    let Some(paths) = std::env::var_os("PATH") else {
+        return false;
+    };
+    std::env::split_paths(&paths).any(|directory| {
+        if directory.join(program).is_file() {
+            return true;
+        }
+        #[cfg(windows)]
+        for suffix in ["exe", "cmd", "bat"] {
+            if directory.join(format!("{program}.{suffix}")).is_file() {
+                return true;
+            }
+        }
+        false
+    })
 }
 
 fn validate_api_key(key: &str) -> Result<()> {
@@ -403,6 +491,37 @@ mod tests {
     use super::*;
     fn config() -> ProviderConfig {
         serde_json::from_value(json!({"model":"test", "api_key_env":""})).unwrap()
+    }
+
+    #[test]
+    fn subscription_requires_explicit_remote_and_does_not_read_api_credentials() {
+        let mut config = config();
+        config.kind = ProviderKind::Chatgpt;
+        assert!(Provider::new(&config, &[]).is_err());
+        config.allow_remote = true;
+        config.model.clear();
+        config.base_url = "not an HTTP endpoint".into();
+        config.api_key_env = "OPENAI_API_KEY".into();
+        let provider = Provider::new(&config, &[]).unwrap();
+        assert!(!provider.is_fixture());
+        assert!(provider.inner.key.is_none());
+        assert!(provider.inner.endpoint.is_none());
+    }
+
+    #[test]
+    fn subscription_redacts_input_and_rejects_missing_cli_before_dispatch() {
+        let mut config = config();
+        config.kind = ProviderKind::Chatgpt;
+        config.allow_remote = true;
+        config.codex_program = "/nonexistent-harness-codex-1123/not-installed".into();
+        let provider = Provider::new(&config, &["private-canary".into()]).unwrap();
+        let (instructions, user) = provider
+            .codex_input("private-canary", "source private-canary", 100)
+            .unwrap();
+        assert!(!instructions.contains("private-canary") && !user.contains("private-canary"));
+        assert!(provider.preflight("a", "", "", 100).is_err());
+        config.model = "model-private-canary".into();
+        assert!(Provider::new(&config, &["private-canary".into()]).is_err());
     }
 
     #[tokio::test]

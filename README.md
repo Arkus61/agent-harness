@@ -1,8 +1,8 @@
-# Agent Harness 0.1
+# Agent Harness 0.1.1
 
 Локальный харнесс для разработки на **Rust**: задача проходит через DAG, исполнителей в Git worktree, объединение изменений, командные проверки и независимые reviews требований, кода, тестов и безопасности. Есть CLI, сохранение состояния в SQLite, учёт токенов, отмена и явное разрешение неоднозначных результатов действий.
 
-Версия 0.1 предоставляет функциональный **`native-trusted`** runtime. Команды работают с правами пользователя; worktree разделяет изменения, но не ограничивает доступ к компьютеру. Профиль `isolated` сейчас отклоняется без автоматического перехода на native. Качество реальных моделей и готовность к конкретным задачам необходимо оценивать на собственном наборе задач. [Точный статус реализации и проверок](docs/IMPLEMENTATION_STATUS.md).
+Версия 0.1.1 предоставляет функциональный **`native-trusted`** runtime и подключение ChatGPT через официальный Codex CLI. Команды работают с правами пользователя; worktree разделяет изменения, но не ограничивает доступ к компьютеру. Профиль `isolated` сейчас отклоняется без автоматического перехода на native. Качество реальных моделей и готовность к конкретным задачам необходимо оценивать на собственном наборе задач. [Точный статус реализации и проверок](docs/IMPLEMENTATION_STATUS.md).
 
 ## Сборка и быстрый пример
 
@@ -44,7 +44,29 @@ if (-not $env:RUSTUP_HOME) { $env:RUSTUP_HOME = Join-Path $env:USERPROFILE ".rus
 
 ## Запуск с настоящей моделью
 
-Поддерживается **OpenAI-compatible Chat Completions**. Провайдер должен принимать `response_format: {"type":"json_object"}`, возвращать один JSON-ответ с `finish_reason: "stop"` и полные `usage.prompt_tokens`/`usage.completion_tokens`. Markdown вокруг JSON, неизвестные поля, усечённый ответ и malformed JSON отклоняются. Возможность модели выполнять этот контракт определяется выбранным backend и вашей проверкой, а не именем провайдера.
+Поддерживаются **ChatGPT через Codex CLI** и **OpenAI-compatible Chat Completions**. Оба backend возвращают типизированный `ModelReply`; файловые действия и команды выполняет ToolGateway харнесса.
+
+### Подписка ChatGPT
+
+Установите [официальный Codex CLI](https://developers.openai.com/codex/cli) и добавьте `codex` в `PATH`. Затем:
+
+```text
+harness auth status
+harness auth chatgpt --device --check
+harness --repo "../harness-demo" run --task "examples/task-chatgpt.json"
+```
+
+`auth chatgpt` использует существующий вход ChatGPT либо запускает официальный `codex login`. Для headless-среды `--device` выбирает `codex login --device-auth`: пользователь проходит вход в браузере, Codex сохраняет и обновляет credentials. `--check` делает настоящий короткий запрос модели и проверяет JSON-ответ и usage. Без этого флага проверяется вход, а не генерация. Для установки вне `PATH` есть `--codex-program "/path/to/codex"`; тот же путь задаётся в task provider.
+
+В текущей среде два реальных `--check` завершились **`unauthorized`**; после них `auth status` сообщает отсутствие входа. Новый официальный device login ожидает завершения пользователем в браузере: подключение пока не установлено, успешная генерация не подтверждена. Диагностика показывает класс ошибки без исходного тела ответа.
+
+[Готовая задача](examples/task-chatgpt.json) содержит `kind: "chatgpt"` и обязательное `allow_remote: true`. Пустой `model` использует default Codex для аккаунта; доступные модели показывает `auth status`, выбранную можно задать в task и проверить через `--model MODEL`. Контекст отправляется сервису Codex. Credentials остаются в хранилище официального CLI; не помещайте их в проект, чат или архив.
+
+Используются лимиты Codex, доступные текущему ChatGPT-аккаунту. API оплачивается отдельно; это подключение не создаёт API-кредитов и не означает безлимит. У Codex backend нет жёсткого output-token cap: `max_output_tokens` здесь мягкая квота, а резервация содержит дополнительную оценку 16 КиБ. Фактический расход сохраняется; превышение root budget блокирует продолжение. [Настройка, протокол и ограничения](docs/CHATGPT_SUBSCRIPTION.md).
+
+### OpenAI-compatible backend
+
+Провайдер должен принимать `response_format: {"type":"json_object"}`, возвращать один JSON-ответ с `finish_reason: "stop"` и полные `usage.prompt_tokens`/`usage.completion_tokens`. Markdown вокруг JSON, неизвестные поля, усечённый ответ и malformed JSON отклоняются. Возможность модели выполнять этот контракт определяется выбранным backend и вашей проверкой, а не именем провайдера.
 
 Перед запуском нужен Git-репозиторий с хотя бы одним commit и чистыми **tracked** файлами. В worktree переносится committed baseline; произвольные untracked файлы исходной рабочей директории не копируются. Зависимости для `--offline` должны быть доступны заранее, а lockfile — закоммичен.
 
@@ -209,8 +231,8 @@ harness eval
 
 `eval` выполняет ограниченный набор **component fixture assertions** с отдельными критериями и доказательствами. Он не означает прохождение всех 42 сценариев, 30 live-задач или cross-platform certification. [План оценивания и критерии](docs/EVALUATION_PLAN.md) связывает существующие проверки с [машиночитаемым каталогом сценариев](evals/scenarios.json). CI настроен для Linux/macOS/Windows; результат настройки CI отличается от фактически завершённых запусков. [Матрица реализованного и оставшаяся работа](docs/IMPLEMENTATION_STATUS.md).
 
-На native Linux прошли **73 теста**: 60 library, 6 contracts и 7 end-to-end. Также прошли format check, clippy для всех targets с `-D warnings` и release build. Эти проверки покрывают текущие memory/protected-path/edit/snapshot изменения; live LLM benchmark и выполнение Windows/macOS здесь не заявляются.
+Для финальных исходников **0.1.1** на native Linux прошёл **91 тест**: 64 library, 2 Codex CLI, 12 Codex protocol, 6 contracts и 7 end-to-end. Также прошли format check, clippy для всех targets с `-D warnings` и release build. Новые проверки используют контролируемый app-server fixture и проверяют строгий typed response, usage, отказ tool calls и cleanup helper-процессов при настоящем SIGINT. Они подтверждают механизм transport; live LLM benchmark и выполнение Windows/macOS здесь не заявляются.
 
-Release executable также прошёл `demo` и `eval`: один реальный Cargo check, четыре scripted reviews и 20 выполненных component assertions. Для `--version` в локальном Linux-контейнере с прогретой файловой системой измерен p95 **2,508 мс** по 200 свежим процессам после 20 warmups. Это быстрый путь версии, не полный запуск координатора или memory benchmark. [Методика и исходные измерения](docs/BASELINE.md).
+Release executable **0.1.1** прошёл `eval`: 20 выполненных component assertions, все PASS. Для `--version` в локальном Linux-контейнере с прогретой файловой системой измерен p95 **2,417 мс** по 200 свежим процессам после 20 warmups. Это быстрый путь версии, не полный запуск координатора или memory benchmark. [Методика и исходные измерения](docs/BASELINE.md). Прежний выпуск 0.1.0 также прошёл `demo` с одним настоящим Cargo check и четырьмя scripted reviews; его [baseline сохранён отдельно](docs/startup-baseline-0.1.0.json).
 
 Архитектурные основания: [единый план](docs/ARCHITECTURE_PLAN.md) и [сравнение предложений](docs/ARCHITECTURE_COMPARISON.md).

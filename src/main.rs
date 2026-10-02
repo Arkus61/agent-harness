@@ -22,6 +22,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     Doctor,
+    Auth {
+        #[command(subcommand)]
+        command: AuthCommand,
+    },
     Run {
         #[arg(long)]
         task: PathBuf,
@@ -87,6 +91,29 @@ enum Command {
         #[arg(long)]
         input: PathBuf,
     },
+}
+#[derive(Subcommand)]
+enum AuthCommand {
+    Status {
+        #[arg(long, default_value = "codex")]
+        codex_program: String,
+    },
+    Chatgpt {
+        #[arg(long, default_value = "codex")]
+        codex_program: String,
+        #[arg(long)]
+        device: bool,
+        #[arg(long)]
+        check: bool,
+        #[arg(long)]
+        model: Option<String>,
+    },
+}
+struct AuthSignalGuard(tokio::task::JoinHandle<()>);
+impl Drop for AuthSignalGuard {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
 }
 #[derive(Subcommand)]
 enum MemoryCommand {
@@ -216,6 +243,79 @@ fn main() {
 }
 async fn dispatch(cli: Cli) -> Result<bool> {
     match cli.command {
+        Command::Auth { command } => {
+            use agent_harness::{codex, provider::Provider};
+            use tokio_util::sync::CancellationToken;
+            let cancel = CancellationToken::new();
+            let signal_cancel = cancel.clone();
+            let _signal = AuthSignalGuard(tokio::spawn(async move {
+                if tokio::signal::ctrl_c().await.is_ok() {
+                    signal_cancel.cancel();
+                }
+            }));
+            match command {
+                AuthCommand::Status { codex_program } => {
+                    print(&codex::account_status(&codex_program, cancel.child_token()).await?)?;
+                }
+                AuthCommand::Chatgpt {
+                    codex_program,
+                    device,
+                    check,
+                    model,
+                } => {
+                    let mut status =
+                        codex::account_status(&codex_program, cancel.child_token()).await?;
+                    if status.get("account_type").and_then(Value::as_str) != Some("chatgpt") {
+                        let mut login = tokio::process::Command::new(&codex_program);
+                        login
+                            .arg("login")
+                            .kill_on_drop(true)
+                            .env_remove("OPENAI_API_KEY");
+                        if device {
+                            login.arg("--device-auth");
+                        }
+                        let mut child = login.spawn().context("could not start Codex login")?;
+                        let login_status = tokio::select! {
+                            biased;
+                            _ = cancel.cancelled() => { let _ = child.kill().await; anyhow::bail!("ChatGPT login cancelled"); }
+                            result = child.wait() => result.context("could not wait for Codex login")?,
+                        };
+                        anyhow::ensure!(login_status.success(), "ChatGPT login did not complete; run codex login --device-auth on your computer");
+                        status =
+                            codex::account_status(&codex_program, cancel.child_token()).await?;
+                    }
+                    anyhow::ensure!(
+                        status.get("account_type").and_then(Value::as_str) == Some("chatgpt"),
+                        "Codex is not authenticated with ChatGPT"
+                    );
+                    if check {
+                        let model = model
+                            .or_else(|| {
+                                status
+                                    .get("default_model")
+                                    .and_then(Value::as_str)
+                                    .map(str::to_owned)
+                            })
+                            .unwrap_or_default();
+                        let config: ProviderConfig = serde_json::from_value(
+                            json!({"kind":"chatgpt","codex_program":codex_program,"model":model,"allow_remote":true,"api_key_env":""}),
+                        )?;
+                        let provider = Provider::new(&config, &[])?;
+                        let response = provider.complete("subscription-check", "You are checking the authenticated model connection. Do not use tools. Return only {\"done\":true,\"summary\":\"ChatGPT connection OK\"}.", "Return the connection confirmation JSON. No project files are provided.", 1024, cancel.child_token()).await?;
+                        anyhow::ensure!(
+                            response.reply.done && response.reply.actions.is_empty(),
+                            "connection check returned unexpected actions"
+                        );
+                        anyhow::ensure!(
+                            response.usage.complete,
+                            "model replied but complete usage telemetry is missing"
+                        );
+                        status["connection_check"] = json!({"status":"PASS","model":model,"usage":response.usage,"reply":response.reply});
+                    }
+                    print(&status)?;
+                }
+            }
+        }
         Command::Doctor => {
             let repo = Repo::discover(&cli.repo).ok();
             print(&agent_harness::execution::doctor(repo.as_ref()))?;
@@ -474,6 +574,7 @@ fn create_demo(dir: &Path) -> Result<PathBuf> {
             timeout_secs: 120,
         }],
         provider: ProviderConfig {
+            codex_program: "codex".into(),
             kind: ProviderKind::Scripted,
             base_url: "http://127.0.0.1:11434/v1".into(),
             model: "fixture".into(),

@@ -1,12 +1,12 @@
-# Статус реализации — 0.1, 2026-10-01
+# Статус реализации — 0.1.1, 2026-10-02
 
-Реализован локальный Rust CLI с native agent loop, DAG, Git worktrees, интеграцией, командными проверками и четырьмя независимыми reviewer-сессиями. Это рабочая исходная версия **`native-trusted`**, с реальным OpenAI-compatible transport и отдельно обозначенными scripted fixtures. Полное завершение всех этапов [архитектуры](ARCHITECTURE_PLAN.md) не заявляется.
+Реализован локальный Rust CLI с native agent loop, DAG, Git worktrees, интеграцией, командными проверками и четырьмя независимыми reviewer-сессиями. Это рабочая исходная версия **`native-trusted`**, с OpenAI-compatible transport, подключением ChatGPT через официальный Codex app-server и отдельно обозначенными scripted fixtures. Полное завершение всех этапов [архитектуры](ARCHITECTURE_PLAN.md) не заявляется.
 
 ## Реализовано
 
 | Область | Фактическая реализация |
 |---|---|
-| CLI | `doctor`, `run`, `resume`, `status`, `inspect`, `report`, `cancel`, `reconcile`, `settle`, `merge`, `demo`, `eval`; административные команды memory/skills/strategy |
+| CLI | `doctor`, `run`, `resume`, `status`, `inspect`, `report`, `cancel`, `reconcile`, `settle`, `merge`, `demo`, `eval`; административные команды memory/skills/strategy; `auth status` и `auth chatgpt` с login/device/check |
 | TaskSpec | Типизированный JSON, неизвестные поля отклоняются; requirement/check/budget limits; explicit DAG либо typed model planner |
 | DAG | Проверка покрытия, циклов, зависимостей и консервативного ownership overlap; bounded parallel builders; точные входные и выходные SHA |
 | Git | Detached worktrees, committed baseline, интеграция дельт; отключение hooks/filters для служебных Git-команд; отдельная fast-forward публикация с expected ref |
@@ -17,7 +17,8 @@
 | Durability | SQLite WAL + synchronous FULL; state/event/outbox в транзакции; intents/receipts; BLAKE3 CAS с проверкой bytes/hash |
 | Recovery | Durable budget/repair limits и generation fencing; сохранённый план/base и reuse завершённых node outputs с проверкой input tree; pending effects и неизвестный usage блокируют resume; reconcile/settle с evidence |
 | Budget | Root token spent/reserved accounting, идемпотентные reserve/settle, wall-time deadline от исходного created_at; unknown spending сохраняется |
-| Model transport | Local loopback HTTP либо явно разрешённый внешний HTTPS; no redirects, no proxy, no automatic request retry; bounded body, строгий JSON и usage contract |
+| Model transport | OpenAI-compatible: local loopback HTTP либо явно разрешённый внешний HTTPS, no redirects/proxy/automatic request retry, bounded body, строгий JSON и usage contract. ChatGPT: официальный Codex app-server stdio, fresh ephemeral thread, `outputSchema`, полный usage либо unknown/HOLD |
+| ChatGPT authentication | Codex управляет login и credentials, ручного извлечения tokens нет; требуется ChatGPT auth и `allow_remote=true`, API fallback отключён; `environments:[]` и отключённые host tools сохраняют исполнение действий внутри harness Gateway |
 | DecisionService | Typed оценки `model`/`tools`/`risk`, shadow/enforced; модель не отменяет программный запрет; action assessment для предложенного точного действия |
 | Context | Scoped deterministic file discovery/selection, byte bounds, источники/hash и omissions; targeted read/search; read snapshot потоково получает full BLAKE3 при bounded returned prefix; explicit-secret redaction |
 | Verification | Проверки точного интегрированного кандидата; requirements/code/tests/security reviews; источник и строка proof проверяются, requirements coverage обязательна |
@@ -45,18 +46,20 @@ Outbox здесь — durable журнал доставки и основа hook
 | S26–S36/S42 | Component tests контекста/provider/memory/skills/selector; hashes, statuses, limits, source scopes и сравнимость | Все полные сценарии, истинность arbitrary evidence, live токен-экономию и корректность полноценных кешей/replay |
 | S38 | `isolated` fail-closed до инструментов/model calls | Поддержку strict runtime S37 |
 
-Итоговый прогон текущей версии на **native Linux, Rust 1.99.0** прошёл: **60 library + 6 contracts + 7 end-to-end = 73 теста**, включая memory integration, protected paths, partial edits и source snapshot guards.
+Для исходников **0.1.1** прогон на **native Linux, Rust 1.99.0** прошёл: **64 library + 2 Codex CLI + 12 Codex protocol + 6 contracts + 7 end-to-end = 91 тест**. Новые Codex fixtures проверяют typed contract, tool rejection, delayed/invalid usage, протокольные границы и фактический SIGINT CLI с cleanup helper-процессов. Это проверка механизма transport, а не live качества модели.
 
 | Проверка | Результат |
 |---|---|
-| `cargo test --locked --all-targets` | PASS — 73 теста |
-| `cargo fmt --all -- --check` | PASS |
-| `cargo clippy --locked --all-targets -- -D warnings` | PASS |
-| `cargo build --locked --release` | PASS |
+| `cargo test --locked --all-targets` | PASS для 0.1.1 — 91 тест |
+| `cargo fmt --all -- --check` | PASS для финальных исходников 0.1.1 |
+| `cargo clippy --locked --all-targets -- -D warnings` | PASS для финальных исходников 0.1.1 |
+| `cargo build --locked --release` | PASS — executable `harness 0.1.1` |
 
-Toolchain закреплён в `rust-toolchain.toml`. Release smoke также завершён: `demo` → `FIXTURE_VERIFIED` с одним настоящим Cargo check и четырьмя scripted reviews; `eval` → 20 выполненных component assertions, все PASS.
+Toolchain закреплён в `rust-toolchain.toml`. Release **0.1.1** выполнил `eval`: 20 component assertions, все PASS. Для предыдущего выпуска **0.1.0** также завершён `demo` → `FIXTURE_VERIFIED` с одним настоящим Cargo check и четырьмя scripted reviews.
 
-Для **Linux x86_64 `--version`** в локальном контейнере с прогретой файловой системой выполнены 20 warmups и 200 новых процессов: p50 **2,116 мс**, p95 **2,508 мс**, max **2,751 мс**. Размер executable — **11 202 440 байт**. [Методика baseline](BASELINE.md) и [raw samples](startup-baseline.json) фиксируют условия измерения. Этот короткий путь CLI не запускает весь координатор; полный startup, RSS, dispatch и весь S40 не измерены и не закрыты этим результатом.
+Для ChatGPT подключения на **Codex CLI 0.159.0-alpha.3** первоначально были подтверждены `account/read` с типом `chatgpt` и `model/list` с default `gpt-6-astra`; `planType` сервис не сообщил. **Два реальных model checks завершились `unauthorized`**. Последний `auth status` из release сообщает `authenticated:false`, `account_type:null`. Новый официальный device login запущен и ожидает завершения пользователем; подключение пока не установлено. Успешный live model turn и live pipeline не заявляются. [Настройка и ограничения подписки](CHATGPT_SUBSCRIPTION.md).
+
+Для **Linux x86_64 `--version` выпуска 0.1.1** в локальном контейнере с прогретой файловой системой выполнены 20 warmups и 200 новых процессов: p50 **2,119 мс**, p95 **2,417 мс**, max **2,693 мс**. Размер executable — **11 604 136 байт**. [Методика baseline](BASELINE.md) и [raw samples 0.1.1](startup-baseline.json) фиксируют условия измерения; [измерения 0.1.0 сохранены отдельно](startup-baseline-0.1.0.json). Этот короткий путь CLI не запускает весь координатор; полный startup, RSS, dispatch и весь S40 не измерены и не закрыты этим результатом.
 
 Реальные 30 задач Q01–Q10, hidden holdout, три повторения, B0/B1/H comparison и reviewers/Jev calibration **не исполнялись**. Исполнение на всех трёх ОС в текущей локальной сессии не подтверждено. Настройка CI отличается от фактически завершённых matrix runs.
 
@@ -66,8 +69,8 @@ Toolchain закреплён в `rust-toolchain.toml`. Release smoke также 
 2. **`isolated` не реализован.** Doctor честно сообщает отсутствие confinement; требуемый профиль блокируется, автоматического downgrade нет. Отдельных OS/kernel probes strict isolation ещё нет.
 3. **Windows Job Object назначается после spawn.** Есть окно гонки до назначения. Unix process groups тоже не сдерживают намеренное отделение процессов. Cleanup подходит для управляемых native-процессов, не для недоверенного adversarial code.
 4. **Resume восстанавливает node checkpoints, но не диалог модели.** Используются сохранённый plan/base и завершённые outputs с совместимым input tree. Незавершённые nodes строятся заново. Pending effects/usage требуют ручного подтверждения. Выполненная команда незавершённого builder запрещает автоматический replay; для такого checkpoint нужна инспекция и явно новая задача.
-5. **Учитываются токены и deadline, но не деньги.** Provider tariffs, currency, monetary budget/reservations и billing receipts пока не реализованы. Более того, token reservation — консервативная byte-based оценка, не tokenizer-specific quota guarantee; фактический overspend фиксируется и блокирует продолжение.
-6. **Нет streaming model output.** HTTP request использует `stream: false`; command output bounded, но нет live token UI или SSE model stream.
+5. **Учитываются токены и deadline, но не деньги.** Provider tariffs, currency, monetary budget/reservations и billing receipts пока не реализованы. Token reservation — byte-based оценка, не tokenizer-specific quota guarantee; фактический overspend фиксируется и блокирует продолжение. У ChatGPT/Codex нет жёсткого output cap: дополнительная оценка 16 КиБ не ограничивает hidden context или внутренние retries. `max_output_tokens` здесь мягкая квота. После завершения fresh thread выполняются `account/read` fence и bounded drain 200 мс; учитывается последний наблюдаемый cumulative total, без гарантии финального billing receipt. Missing/invalid/partial usage оставляет HOLD. Лимиты Codex для ChatGPT и отдельный API billing не взаимозаменяемы.
+6. **Нет live token UI.** OpenAI-compatible HTTP использует `stream: false`; ChatGPT backend читает события app-server, но возвращает один финальный typed response. Command output bounded; полноценный пользовательский streaming UI ещё не предоставлен.
 7. **DecisionService пока не полноценный Jev backend.** Он использует configured model с typed JSON. Нет отдельного Choice/Score/Noul adapter, калибровки, нескольких model providers/route switching или доказанного выигрыша neural routing.
 8. **Evidence references не проверяют смысл.** Path/line/coverage guards предотвращают пустые и неверные ссылки, но не доказывают правильность объяснения reviewer. Общая точность одной модели и коррелированные ошибки четырёх ролей требуют live evaluation.
 9. **Protected command definition и paths не создают произвольный trusted oracle.** Checks и `protected_paths` неизменяемы в TaskSpec; final source diffs проверяются, ordinary repository tests остаются продуктовым кодом. Это результатные guards, не confinement исполнения и не защита от временного изменения и восстановления native-кодом. Полноценный hidden acceptance controller и отдельный evaluator security boundary ещё не предоставлены.
@@ -76,6 +79,7 @@ Toolchain закреплён в `rust-toolchain.toml`. Release smoke также 
 12. **Secret filtering имеет явные границы.** Явные task secrets и API key redaction поддерживаются в transport/export; нет надёжного определения неизвестных секретов, L0/local data classification или encrypted state store. Административные memory/skill inputs сохраняются как пользовательские данные; не записывайте туда секреты. `allow_remote` — осознанное разрешение отправки контекста выбранному endpoint.
 13. **Нет полноценных cache/replay/GC.** Service worktrees и receipts сохраняются для инспекции; есть reuse завершённых node outputs, но нет автоматической уборки, продолжения незавершённой model session и replay engine.
 14. **Кроссплатформенность ещё требует выполнения CI.** Есть conditional Unix/Windows code и три-OS workflow. Это не заменяет реальные результаты на Windows/macOS и измерения скорости на закреплённом hardware. Готовый Linux x86_64 executable требует glibc ≥2.39 и системные libc/libm/libgcc_s; для старой glibc нужна пересборка в целевой среде.
+15. **Подключение ChatGPT зависит от версии Codex.** Используются app-server и экспериментальное поле `environments:[]`; проверенная при разработке версия — 0.159.0-alpha.3. Неожиданные tool items/server requests блокируются, arbitrary CLI compatibility не заявляется. Credentials остаются в официальном CLI store; concrete paid plan и успешная генерация определяются отдельной проверкой, а не одним login status. Ошибки показывают публичный класс, например `unauthorized`, без raw body, credentials и private provider details.
 
 ## Соответствие этапам архитектуры
 

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "prompt": "Исправь clamp в src/lib.rs для low <= high и добавь regression tests.",
+  "requirements": [
+    "Значение ниже low возвращает low, выше high — high, внутри интервала сохраняется.",
+    "Добавлены regression tests для всех трёх случаев."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "fix",
+      "prompt": "Исправь src/lib.rs и тесты.",
+      "requirements": [
+        0,
+        1
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/**"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 250000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1800
+  },
+  "concurrency": 2,
+  "max_steps": 20,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

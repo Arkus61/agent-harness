@@ -1,12 +1,12 @@
-# Локальное измерение CLI — 2026-10-01
+# Локальное измерение CLI — 2026-10-02
 
-Release executable `harness 0.1.0` занимает **11 202 440 байт**. На проверенной Linux x86_64 среде запуск нового процесса `harness --version` с прогретой файловой системой дал:
+Release executable `harness 0.1.1` занимает **11 604 136 байт**. На проверенной Linux x86_64 среде запуск нового процесса `harness --version` с прогретой файловой системой дал:
 
 | Метрика | Миллисекунды |
 |---|---:|
-| p50 | 2,116 |
-| p95 | 2,508 |
-| max | 2,751 |
+| p50 | 2,119 |
+| p95 | 2,417 |
+| max | 2,693 |
 
 Метод: 20 warmup и 200 последовательных измеряемых процессов, монотонные часы `time.perf_counter_ns`, nearest-rank percentile. В wall time входят spawn, CLI parsing, capture stdout и exit. После warmup executable и библиотеки могут находиться в файловом кеше. CPU/power profile не контролировался; это локальный контейнер, а не измерение пользовательского ноутбука.
 
@@ -19,3 +19,5 @@ python3 tools/measure_startup.py target/release/harness --output startup-local.j
 На Windows используйте `python` и `target/release/harness.exe`. Python нужен только этому вспомогательному benchmark script.
 
 `--version` выходит до создания agent runtime. Это измерение не включает SQLite/Git, dispatch, модель, сборку или тесты проекта и не закрывает весь сценарий S40. Cold-cache startup, idle coordinator RSS, cancellation latency и сравнение на Windows/macOS здесь не измерялись. Результат другой машины сохраняется отдельно и не объявляется ускорением относительно этой.
+
+Для сравнения сохранено отдельное [наблюдение выпуска 0.1.0](startup-baseline-0.1.0.json): p95 2,508 мс и 11 202 440 байт. Разница двух запусков в неконтролируемом контейнере не доказывает ускорение. Вызовы Codex app-server и модели в обоих измерениях отсутствуют.
