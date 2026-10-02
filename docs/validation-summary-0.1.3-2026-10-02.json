@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "version": "0.1.3",
+  "full_readiness": false,
+  "verdict": "FULL_READINESS_NOT_CONFIRMED",
+  "platform_executed": "linux-x86_64",
+  "runtime_provenance": {
+    "version": "harness 0.1.3",
+    "runtime_source_sha256": "dcf0639d0dc79bde731080c648a3e511258f3522822b37db3570e0461dfe7b18",
+    "binary_sha256": "efa0ce84973e0d71f9975d0235341c5b0cd0833710aba2c59d8f7d4ce5cb950f",
+    "binary_bytes": 12265000,
+    "binary": "/workspace/harness/artifacts/readiness-0.1.3/release/harness",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "source_paths": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "rust-toolchain.toml",
+      "src/bin/harness-test-helper.rs",
+      "src/codex.rs",
+      "src/context.rs",
+      "src/context_cache.rs",
+      "src/decision.rs",
+      "src/engine.rs",
+      "src/evaluation.rs",
+      "src/execution.rs",
+      "src/isolation.rs",
+      "src/knowledge.rs",
+      "src/lib.rs",
+      "src/main.rs",
+      "src/outbox.rs",
+      "src/policy.rs",
+      "src/provider.rs",
+      "src/replay.rs",
+      "src/resources.rs",
+      "src/skills.rs",
+      "src/storage.rs",
+      "src/strategy.rs",
+      "src/supervisor.rs",
+      "src/types.rs"
+    ],
+    "implementation_commit": "48d9f0936d754fcbb319d1b702db7965a3d0b830"
+  },
+  "rust_core": {
+    "passed": 191,
+    "failed": 0,
+    "ignored": 1,
+    "receipt": "artifacts/readiness-0.1.3/cargo-test.log",
+    "new_integration_tests": 62,
+    "fmt": "PASS",
+    "clippy_all_targets": "PASS",
+    "release_build": "PASS",
+    "linux_isolation_required": true
+  },
+  "supplemental": {
+    "component_assertions": 20,
+    "component_failed": 0,
+    "legacy_ast_tests": 8,
+    "legacy_oracle_python_tests": 23,
+    "legacy_manifest_tests": 9,
+    "legacy_manifest_optimized_tests": 9,
+    "benchmark_controller_tests": 14,
+    "benchmark_ast_tests": 2
+  },
+  "subsystems": {
+    "context_cache": "run-local bounded payload; source revalidation on every hit; no model-response/semantic cache",
+    "evidence": "full source hash + byte range; claim UNKNOWN; no entailment",
+    "resource_limits": "actual inherited hard process limits; aggregate/unsupported requests fail closed",
+    "outbox": "schema v3 leases/fences/retries/local idempotent journal; no generic external adapter certification",
+    "replay": "consistent READ_ONLY journal; no effects or billing; partial projection check; not fresh verification",
+    "planner_fallback": "new model plan revision within unchanged grants; explicit/saved invalid plan blocks"
+  },
+  "benchmark": {
+    "tasks": 30,
+    "dev": 20,
+    "holdout_labelled": 10,
+    "holdout_hidden_from_developers": false,
+    "baseline_control_pairs_passed": 30,
+    "baselines_compiled": true,
+    "known_valid_controls_passed": 30,
+    "model_calls_during_prepare": 0,
+    "suite_sources_sha256": "1a397bd2d5edf24509b1ef43763a6c4f17bb069cdd2df74a83d101f9012b509f",
+    "manifest": "artifacts/readiness-0.1.3/benchmark/freeze-final/manifest.json",
+    "H_live_runs_started": 1,
+    "B0_B1_implemented": false,
+    "required_comparison_runs": 270,
+    "full_comparison_executed": false,
+    "memory_skill_strategy_hooks": "NOT_EXECUTED",
+    "full_family_claims": false
+  },
+  "chatgpt_connection": {
+    "status": "PASS",
+    "model": "gpt-6.1-sol",
+    "plan_type": "plus",
+    "usage": {
+      "complete": true,
+      "input_tokens": 5497,
+      "output_tokens": 45
+    },
+    "receipt": "artifacts/readiness-0.1.3/chatgpt-check.stdout.json"
+  },
+  "fresh_h_pilot": {
+    "id": "fd72d4df-ec37-4971-bb76-941637007b0c",
+    "state": "BLOCKED",
+    "task_hash": "41901370ccfbfa05e462b897b2b5b615d46cef3fe7c682a94e894aacc0303cfc",
+    "base_sha": "e0f0ffcf591c1339a9439e801870fdb111b13937",
+    "candidate_sha": null,
+    "spent_tokens": 25181,
+    "reserved_tokens": 27134,
+    "error": "Codex completion timed out; usage is unknown",
+    "configuration": "H",
+    "trial": 1,
+    "execution_profile": "isolated",
+    "fresh_release": "0.1.3",
+    "independent_oracle": "NOT_EXECUTED_NO_CANDIDATE",
+    "head_unchanged": true,
+    "model_calls_complete": 4,
+    "model_calls_unknown": 1,
+    "actions_intents": 2,
+    "action_receipts": 2,
+    "unknown_usage_settled": false,
+    "automatic_retry_performed": false
+  },
+  "performance": {
+    "method": "three warmups + 30 subprocess wall-time samples; warm caches; live Q02 pilot may contend; stdout/stderr DEVNULL; no cold/RSS/full-cycle claim",
+    "p95_ms": {
+      "--version": 2.163,
+      "doctor": 26.726,
+      "eval": 6.659
+    },
+    "full_RSS_dispatch_speedup": "NOT_EXECUTED",
+    "receipt": "artifacts/readiness-0.1.3/performance.json"
+  },
+  "demo": {
+    "state": "FIXTURE_VERIFIED",
+    "model_quality_claimed": false,
+    "receipt": "artifacts/readiness-0.1.3/demo-final.json"
+  },
+  "catalogue": {
+    "scenarios": 42,
+    "mandatory_criteria": 131,
+    "fully_executed_across_declared_platforms_profiles": 0,
+    "mandatory_statements_or_thresholds_relaxed": false
+  },
+  "remaining": [
+    "Fresh H pilot stopped after a real Codex 120-second timeout; fifth call usage unknown, reservation retained; exact candidate absent. No observed provider quota error in this pilot.",
+    "Windows/macOS not executed; no native executors or git remote were provided. CI configuration is not a CI run.",
+    "B0/B1 ablation modes and 270 fresh comparative runs missing; true hidden holdout not established.",
+    "Full 42-scenario/131-criterion acceptance, reviewer/decision calibration and controlled power-loss matrix incomplete.",
+    "Aggregate CPU/RAM/disk backend, automatic memory/skill/strategy hooks and probe fallback, entailment/compaction, external worker capability protocol, complete response cache/replay/GC/snapshot restore require further implementation.",
+    "No fresh independent subagent review of final merged tree: spawned agents were quota-limited; previous baseline audit is preserved as historical evidence."
+  ],
+  "historical_0_1_2_receipts_reused_as_current_release_acceptance": false
+}

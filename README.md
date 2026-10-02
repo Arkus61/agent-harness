@@ -1,8 +1,8 @@
-# Agent Harness 0.1.2
+# Agent Harness 0.1.3
 
 Локальный харнесс для разработки на **Rust**: задача проходит через DAG, исполнителей в Git worktree, объединение изменений, командные проверки и независимые reviews требований, кода, тестов и безопасности. Есть CLI, сохранение состояния в SQLite, учёт токенов, отмена и явное разрешение неоднозначных результатов действий.
 
-Версия **0.1.2** прошла полный `enforced` цикл в **18 свежих native trials** и отдельном Linux `isolated` pilot; **129 локальных тестов PASS**. Независимая приёмка native кандидатов — **18/18: 15 исходных PASS + 3 отдельных Q03 PASS после исправления grader**, с сохранением original receipts. Исправлены контракт DecisionService и граница inference Codex / Harness ToolGateway. Доступны `native-trusted` и Linux `isolated` через probed bubblewrap; остальные ОС отказывают в isolated без downgrade. [Отчёт](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md), [JSON-результат](docs/validation-summary-0.1.2-2026-10-02.json) и [точный статус](docs/IMPLEMENTATION_STATUS.md).
+Версия **0.1.3**: **191 локальный Rust-тест PASS**, bounded context cache с проверкой источников, process limits, durable local outbox и исторический replay. **30/30 benchmark baseline/control пар** прошли независимые Linux-isolated проверки. Реальное ChatGPT-подключение работает; свежий H pilot остановился с `BLOCKED` после Codex timeout и unknown usage. **Полная готовность не подтверждена.** [Текущий отчёт](docs/VALIDATION_REPORT_0.1.3_2026-10-02.md), [JSON](docs/validation-summary-0.1.3-2026-10-02.json), [новые контракты](docs/LOCAL_RUNTIME_CONTRACTS.md). Результаты успешного live pilot **0.1.2** сохранены [отдельно](docs/VALIDATION_REPORT_0.1.2_2026-10-02.md) и не сертифицируют новую версию.
 
 ## Сборка и быстрый пример
 
