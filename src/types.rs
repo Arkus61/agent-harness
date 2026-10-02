@@ -310,6 +310,8 @@ pub enum Action {
 #[serde(deny_unknown_fields)]
 pub struct DecisionAssessment {
     pub purpose: String,
+    /// Required binding to the complete, purpose-specific decision request.
+    pub subject_hash: String,
     #[serde(default)]
     pub allow: bool,
     #[serde(default)]

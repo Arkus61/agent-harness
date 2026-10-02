@@ -72,11 +72,12 @@ pub fn compile(
     let mut paths: BTreeMap<String, PathBuf> = BTreeMap::new();
     let mut examined = 0usize;
     let mut unreadable = false;
+    let discovery_root = root.clone();
     let walker = WalkBuilder::new(&root)
         .hidden(false)
         .follow_links(false)
         .sort_by_file_name(|a, b| a.cmp(b))
-        .filter_entry(|entry| {
+        .filter_entry(move |entry| {
             if entry.depth() == 0 {
                 return true;
             }
@@ -91,7 +92,10 @@ pub fn compile(
                     | ".ssh"
                     | ".aws"
                     | ".gnupg"
-            ) && !sensitive_name(&name)
+            ) && entry
+                .path()
+                .strip_prefix(&discovery_root)
+                .is_ok_and(|relative| !crate::policy::is_sensitive_path(relative))
         })
         .build();
     for entry in walker {
@@ -245,20 +249,6 @@ fn read_scope(grants: &Grants) -> Result<GlobSet> {
         builder.add(Glob::new(&pattern.replace('\\', "/")).context("invalid read scope glob")?);
     }
     Ok(builder.build()?)
-}
-
-fn sensitive_name(name: &str) -> bool {
-    let name = name.to_ascii_lowercase();
-    name.starts_with(".env")
-        || matches!(
-            name.as_str(),
-            "id_rsa" | "id_ed25519" | "id_dsa" | "credentials" | "secrets"
-        )
-        || name.starts_with("credentials.")
-        || name.starts_with("secrets.")
-        || [".pem", ".key", ".p12", ".pfx"]
-            .iter()
-            .any(|suffix| name.ends_with(suffix))
 }
 
 fn query_terms(prompt: &str, requirements: &[String]) -> BTreeSet<String> {

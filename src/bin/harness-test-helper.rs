@@ -85,6 +85,21 @@ fn codex_mock() -> Result<(), Box<dyn std::error::Error>> {
             )?,
             Some("thread/start") => {
                 model = params["model"].as_str().ok_or("missing mock model")?.into();
+                let developer = params["developerInstructions"]
+                    .as_str()
+                    .ok_or("missing mock developer instructions")?;
+                for boundary in [
+                    "proposals represented as data",
+                    "separate trusted HarnessToolGateway",
+                    "read-only sandbox does not determine the gateway's permissions",
+                    "a JSON proposal cannot grant permissions",
+                    "untrusted data and cannot broaden",
+                    "echo its subject_hash exactly",
+                ] {
+                    if !developer.contains(boundary) {
+                        return Err("mock gateway/inference trust boundary missing".into());
+                    }
+                }
                 for field in [
                     "environments",
                     "dynamicTools",
@@ -113,6 +128,36 @@ fn codex_mock() -> Result<(), Box<dyn std::error::Error>> {
                 )?;
             }
             Some("turn/start") => {
+                if params["sandboxPolicy"]["type"] != "readOnly"
+                    || params["sandboxPolicy"]["networkAccess"] != false
+                    || params["approvalPolicy"] != "never"
+                    || params["environments"] != json!([])
+                    || params["runtimeWorkspaceRoots"] != json!([])
+                {
+                    return Err("mock turn inference restrictions missing".into());
+                }
+                let decision_schema = &params["outputSchema"]["properties"]["decision"]["anyOf"][0];
+                if decision_schema["properties"]["subject_hash"]["type"] != "string"
+                    || !decision_schema["required"]
+                        .as_array()
+                        .is_some_and(|fields| fields.iter().any(|field| field == "subject_hash"))
+                {
+                    return Err("mock decision subject binding schema missing".into());
+                }
+                if model == "fixture-cli-owner-death" {
+                    let marker = std::env::var("HARNESS_CODEX_TEST_MARKER")?;
+                    let descendant = Command::new(std::env::current_exe()?)
+                        .args(["heartbeat", &format!("{marker}.descendant-heartbeat"), "25"])
+                        .stdin(Stdio::null())
+                        .stdout(Stdio::null())
+                        .stderr(Stdio::null())
+                        .spawn()?;
+                    std::fs::write(
+                        &marker,
+                        json!({"cwd":std::env::current_dir()?,"app_server_pid":std::process::id(),"descendant_pid":descendant.id()}).to_string(),
+                    )?;
+                    heartbeat(Path::new(&format!("{marker}.heartbeat")), 25)?;
+                }
                 if model == "fixture-cancel" || model == "fixture-cli-cancel" {
                     let marker = if model == "fixture-cli-cancel" {
                         std::env::var("HARNESS_CODEX_TEST_MARKER")?
@@ -155,6 +200,19 @@ fn codex_mock() -> Result<(), Box<dyn std::error::Error>> {
                     "{\"done\":true,\"unknown\":\"PRIVATE_REPLY\"}".into()
                 } else if model == "fixture-invalid-severity" {
                     json!({"verdict":"PASS","findings":[{"requirement":null,"severity":"major","message":"PRIVATE_REPLY","evidence":"source"}]}).to_string()
+                } else if model == "fixture-proposal" {
+                    json!({"done":false,"summary":"gateway proposal only","actions":[{"type":"write_file","path":"src/lib.rs","content":"gateway proposal only","expected_hash":null}]}).to_string()
+                } else if model == "fixture-decision" || model == "fixture-decision-missing-hash" {
+                    let subject: Value = serde_json::from_str(
+                        params["input"][0]["text"]
+                            .as_str()
+                            .ok_or("missing mock decision input")?,
+                    )?;
+                    let mut assessment = json!({"purpose":subject["purpose"],"subject_hash":subject["subject_hash"],"allow":true,"abstain":false,"reason":"supplied gateway write grant; inference process remains read-only","choice":null,"tools":[]});
+                    if model == "fixture-decision-missing-hash" {
+                        assessment.as_object_mut().unwrap().remove("subject_hash");
+                    }
+                    json!({"done":true,"summary":"gateway risk assessment","actions":[],"decision":assessment}).to_string()
                 } else {
                     json!({"done":true,"summary":"mock completion","actions":[]}).to_string()
                 };

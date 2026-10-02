@@ -222,6 +222,13 @@ fn success(report: &RunReport) -> bool {
 }
 
 fn main() {
+    if let Some(result) = agent_harness::supervisor::entry() {
+        if let Err(error) = result {
+            eprintln!("native supervisor: {error}");
+            std::process::exit(125);
+        }
+        return;
+    }
     // Parse first so --version/--help do not allocate a runtime or touch network/state.
     let cli = Cli::parse();
     let result = tokio::runtime::Builder::new_multi_thread()
@@ -546,11 +553,21 @@ fn create_demo(dir: &Path) -> Result<PathBuf> {
                 done: true,
                 decision: Some(DecisionAssessment {
                     purpose: purpose.into(),
+                    // Only the explicit scripted provider binds this placeholder
+                    // to its current typed request; live replies must echo it.
+                    subject_hash: String::new(),
                     allow: true,
                     abstain: false,
                     reason: "scripted fixture".into(),
-                    choice: None,
-                    tools: vec![],
+                    choice: (purpose == "model").then(|| "scripted_fixture".into()),
+                    tools: if purpose == "tools" {
+                        ["read_file", "search", "write_file", "edit_file"]
+                            .into_iter()
+                            .map(str::to_owned)
+                            .collect()
+                    } else {
+                        vec![]
+                    },
                 }),
                 ..Default::default()
             }],

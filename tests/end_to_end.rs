@@ -61,6 +61,24 @@ fn demo(parent: &Path, failpoint: Option<&str>) -> (PathBuf, Output) {
 
 fn assert_fixture_verified(report: &Value) {
     assert_eq!(report["run"]["state"], "FIXTURE_VERIFIED", "{report:#}");
+    let decisions: Vec<_> = report["events"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|event| event["kind"] == "decision.assessment")
+        .collect();
+    assert!(!decisions.is_empty());
+    let mut request_ids = std::collections::BTreeSet::new();
+    for event in decisions {
+        let payload = &event["payload"];
+        let request: agent_harness::decision::DecisionRequest =
+            serde_json::from_value(payload["request"].clone()).unwrap();
+        request.validate().unwrap();
+        assert!(request_ids.insert(request.request_id.clone()));
+        assert_eq!(payload["input_hash"], request.subject_hash);
+        assert_eq!(payload["assessment"]["subject_hash"], request.subject_hash);
+        assert_eq!(payload["fixture"], true);
+    }
     let reviews = report["reviews"].as_array().unwrap();
     assert_eq!(reviews.len(), 4);
     let roles: BTreeMap<_, _> = reviews
@@ -156,7 +174,7 @@ fn cli_eval_counts_only_executed_assertions() {
 }
 
 #[test]
-fn isolated_profile_fails_closed_before_actions() {
+fn isolated_profile_uses_probed_backend_or_fails_closed_before_actions() {
     let parent = tempfile::tempdir().unwrap();
     let (repo, output) = demo(parent.path(), None);
     successful(&output);
@@ -169,8 +187,24 @@ fn isolated_profile_fails_closed_before_actions() {
         &["run", "--task", path.to_str().unwrap()],
         None,
     );
-    assert!(!output.status.success());
     let report = json_output(&output);
+    if agent_harness::isolation::availability().available {
+        assert!(output.status.success(), "{report:#}");
+        assert_fixture_verified(&report);
+        for event in report["events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|event| event["kind"] == "decision.assessment")
+        {
+            assert_eq!(
+                event["payload"]["request"]["effective_scope"]["runtime_profile"],
+                "isolated"
+            );
+        }
+        return;
+    }
+    assert!(!output.status.success());
     assert_eq!(report["run"]["state"], "BLOCKED");
     assert!(report["attempts"].as_array().unwrap().is_empty());
     assert!(report["events"].as_array().unwrap().iter().all(|event| {
@@ -259,6 +293,13 @@ fn dag_integrates_two_independent_builders_before_dependent_builder() {
     ]);
     let helper = env!("CARGO_BIN_EXE_harness-test-helper");
     task["grants"]["commands"] = json!([{"program":helper,"args_prefix":["sleep","1500"]}]);
+    task["provider"]["scripts"]["decision:tools"][0]["decision"]["tools"] = json!([
+        "read_file",
+        "search",
+        "write_file",
+        "edit_file",
+        "run_command"
+    ]);
     let pause = json!({"type":"run_command","program":helper,"args":["sleep","1500"]});
     let original = std::fs::read(repo.join("src/lib.rs")).unwrap();
     let scripts = task["provider"]["scripts"].as_object_mut().unwrap();
@@ -376,8 +417,8 @@ fn sigkill_coordinator_preserves_command_intent_and_resume_holds() {
     use std::process::{Child, Stdio};
     use std::time::{Duration, Instant};
 
-    // Cleanup is explicit: native Unix children are not promised to die on
-    // coordinator SIGKILL. This test certifies durable recovery, not confinement.
+    // The trusted supervisor survives coordinator loss and stops ordinary
+    // descendants. Native execution still is not hostile-process confinement.
     struct RunningCommand {
         coordinator: Child,
         heartbeat: PathBuf,
@@ -413,6 +454,13 @@ fn sigkill_coordinator_preserves_command_intent_and_resume_holds() {
     task["nodes"][0]["requirements"] = json!([0]);
     task["grants"]["commands"] =
         json!([{"program":helper,"args_prefix":["heartbeat",heartbeat.to_str().unwrap()]}]);
+    task["provider"]["scripts"]["decision:tools"][0]["decision"]["tools"] = json!([
+        "read_file",
+        "search",
+        "write_file",
+        "edit_file",
+        "run_command"
+    ]);
     task["provider"]["scripts"]["builder:fix"] = json!([{
         "actions":[{"type":"run_command","program":helper,"args":["heartbeat",heartbeat.to_str().unwrap(),"25"]}],
         "done":true
@@ -449,6 +497,10 @@ fn sigkill_coordinator_preserves_command_intent_and_resume_holds() {
     let killed = running.coordinator.wait().unwrap();
     use std::os::unix::process::ExitStatusExt;
     assert_eq!(killed.signal(), Some(libc::SIGKILL));
+    std::thread::sleep(Duration::from_millis(250));
+    let before = std::fs::metadata(&heartbeat).unwrap().len();
+    std::thread::sleep(Duration::from_millis(250));
+    assert_eq!(std::fs::metadata(&heartbeat).unwrap().len(), before);
     let all_runs = successful(&cli(Some(&repo), &["status"], None));
     let recovered = all_runs
         .as_array()

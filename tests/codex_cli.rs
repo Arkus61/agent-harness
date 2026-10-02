@@ -82,3 +82,81 @@ fn ctrl_c_on_subscription_cli_cancels_app_server_and_cleans_private_directory() 
     std::thread::sleep(Duration::from_millis(100));
     assert_eq!(first, std::fs::read(&heartbeat).unwrap());
 }
+
+#[cfg(unix)]
+#[test]
+fn owner_sigkill_stops_subscription_app_server_and_its_descendant() {
+    use std::time::{Duration, Instant};
+    let temporary = tempfile::tempdir().unwrap();
+    let marker = temporary.path().join("owner-death");
+    let mut child = command()
+        .args(["--model", "fixture-cli-owner-death"])
+        .env("HARNESS_CODEX_TEST_MARKER", &marker)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    struct Cleanup {
+        cli_pid: Option<u32>,
+        target_pid: Option<u32>,
+        directory: Option<std::path::PathBuf>,
+    }
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            if let Some(pid) = self.cli_pid {
+                unsafe { libc::kill(pid as i32, libc::SIGKILL) };
+            }
+            if let Some(pid) = self.target_pid {
+                unsafe { libc::kill(-(pid as i32), libc::SIGKILL) };
+            }
+            if let Some(directory) = &self.directory {
+                let _ = std::fs::remove_dir_all(directory);
+            }
+        }
+    }
+    let mut cleanup = Cleanup {
+        cli_pid: Some(child.id()),
+        target_pid: None,
+        directory: None,
+    };
+    let started = Instant::now();
+    while !marker.exists() && started.elapsed() < Duration::from_secs(5) {
+        assert!(child.try_wait().unwrap().is_none());
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let fixture: Value = serde_json::from_slice(&std::fs::read(&marker).unwrap()).unwrap();
+    cleanup.target_pid = Some(fixture["app_server_pid"].as_u64().unwrap() as u32);
+    cleanup.directory = Some(fixture["cwd"].as_str().unwrap().into());
+    let heartbeats = [
+        marker.with_extension("heartbeat"),
+        marker.with_extension("descendant-heartbeat"),
+    ];
+    let started = Instant::now();
+    while heartbeats.iter().any(|path| {
+        std::fs::metadata(path)
+            .map(|metadata| metadata.len() == 0)
+            .unwrap_or(true)
+    }) && started.elapsed() < Duration::from_secs(5)
+    {
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(heartbeats.iter().all(|path| path.exists()));
+    assert_eq!(unsafe { libc::kill(child.id() as i32, libc::SIGKILL) }, 0);
+    assert!(!child.wait().unwrap().success());
+    cleanup.cli_pid = None;
+    // Neither the killed owner nor a Rust Drop handler can perform this cleanup.
+    // The separate supervisor detects the lost stdin lease and kills both.
+    std::thread::sleep(Duration::from_millis(150));
+    let snapshots = heartbeats
+        .iter()
+        .map(|path| std::fs::read(path).unwrap())
+        .collect::<Vec<_>>();
+    std::thread::sleep(Duration::from_millis(150));
+    for (path, snapshot) in heartbeats.iter().zip(snapshots) {
+        assert_eq!(snapshot, std::fs::read(path).unwrap());
+    }
+    cleanup.target_pid = None;
+    // SIGKILL cannot run PrivateDir's destructor; remove the empty fixture cwd.
+    // No credentials or repository contents were present in it.
+}

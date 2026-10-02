@@ -1,4 +1,5 @@
 use agent_harness::codex::{account_status, complete, reply_schema, validate_input};
+use agent_harness::types::Action;
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 
@@ -54,6 +55,77 @@ async fn empty_model_selects_the_authenticated_catalog_default() {
     .unwrap();
     assert!(response.reply.done);
     assert!(response.usage.complete);
+}
+
+#[tokio::test]
+async fn tool_free_inference_accepts_gateway_proposals_as_json_data() {
+    // The portable mock verifies thread developer instructions and every turn's
+    // read-only/no-environment policy before returning this JSON proposal.
+    let response = complete(
+        executable(),
+        "fixture-proposal",
+        "Propose an authorized write through the external HarnessToolGateway.",
+        "The gateway grants write to src/lib.rs; your inference process has no tools.",
+        100,
+        CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert!(!response.reply.done);
+    assert!(matches!(
+        response.reply.actions.as_slice(),
+        [Action::WriteFile { path, content, expected_hash: None }]
+            if path == "src/lib.rs" && content == "gateway proposal only"
+    ));
+    assert!(response.usage.complete);
+    // Actual app-server tool operations continue to fail closed under the same
+    // developer instructions; a proposal does not enable transport tools.
+    assert!(complete(
+        executable(),
+        "fixture-tool",
+        "Propose an authorized write through the external HarnessToolGateway.",
+        "The gateway grants write to src/lib.rs; your inference process has no tools.",
+        100,
+        CancellationToken::new(),
+    )
+    .await
+    .is_err());
+}
+
+#[tokio::test]
+async fn gateway_risk_assessment_preserves_required_subject_binding() {
+    let subject_hash = "98d86c72a271a24a68dad24a4b3cc80d42dce7f61398d3f2e4e2945d864c37730";
+    let input = serde_json::json!({
+        "purpose":"risk",
+        "subject_hash":subject_hash,
+        "subject":{"kind":"gateway_action","action":{"type":"write_file","path":"src/lib.rs","content":"authorized proposal","expected_hash":null}}
+    })
+    .to_string();
+    let response = complete(
+        executable(),
+        "fixture-decision",
+        "Assess the exact gateway subject and echo its subject_hash.",
+        &input,
+        100,
+        CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    let assessment = response.reply.decision.unwrap();
+    assert_eq!(assessment.purpose, "risk");
+    assert_eq!(assessment.subject_hash, subject_hash);
+    assert!(assessment.allow && !assessment.abstain);
+    assert!(response.reply.actions.is_empty());
+    assert!(complete(
+        executable(),
+        "fixture-decision-missing-hash",
+        "Assess the exact gateway subject and echo its subject_hash.",
+        &input,
+        100,
+        CancellationToken::new(),
+    )
+    .await
+    .is_err());
 }
 
 #[tokio::test]
@@ -256,5 +328,101 @@ fn strict_reply_schema_covers_all_harness_actions() {
             .unwrap()
             .len(),
         5
+    );
+    let decision = &schema["properties"]["decision"]["anyOf"][0];
+    assert_eq!(decision["properties"]["subject_hash"]["type"], "string");
+    assert!(decision["required"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|field| field == "subject_hash"));
+}
+
+/// Explicit manual probe: one bounded subscription call, no gateway execution,
+/// no repository context, and no API-key fallback. Never runs in ordinary tests.
+#[tokio::test]
+#[ignore = "requires authorized real ChatGPT subscription inference"]
+async fn live_subscription_gateway_risk_contract_smoke() {
+    use agent_harness::decision::{DecisionRequest, DecisionScope, DECISION_SYSTEM};
+    use agent_harness::types::Grants;
+    let scope = DecisionScope::new(
+        &Grants {
+            read: vec!["src/smoke.txt".into()],
+            write: vec!["src/smoke.txt".into()],
+            commands: vec![],
+        },
+        &["src/smoke.txt".into()],
+        false,
+        &["Cargo.toml".into(), "Cargo.lock".into()],
+    )
+    .unwrap();
+    let request = DecisionRequest::risk(
+        &Action::WriteFile {
+            path: "src/smoke.txt".into(),
+            content: "JSON proposal only; this smoke does not execute gateway actions.\n".into(),
+            expected_hash: None,
+        },
+        scope,
+    )
+    .unwrap();
+    let response = complete(
+        "codex",
+        "gpt-6.1-sol",
+        DECISION_SYSTEM,
+        &serde_json::to_string(&request).unwrap(),
+        1024,
+        CancellationToken::new(),
+    )
+    .await;
+    let (passed, evidence) = match response {
+        Ok(response) => {
+            let validation = request.validate_reply(&response.reply);
+            let passed = validation.is_ok()
+                && response.usage.complete
+                && response
+                    .reply
+                    .decision
+                    .as_ref()
+                    .is_some_and(|decision| decision.allow && !decision.abstain);
+            (
+                passed,
+                serde_json::json!({
+                    "status":if passed {"PASS"} else {"HOLD"},
+                    "dispatches":1,
+                    "model":"gpt-6.1-sol",
+                    "executor":"harness_tool_gateway",
+                    "gateway_executed":false,
+                    "inference_sandbox":"readOnly",
+                    "request":request,
+                    "reply":response.reply,
+                    "usage":response.usage,
+                    "contract_valid":validation.is_ok(),
+                    "contract_error":validation.err().map(|error| error.to_string())
+                }),
+            )
+        }
+        Err(error) => (
+            false,
+            serde_json::json!({
+                "status":"ERROR",
+                "dispatches":1,
+                "model":"gpt-6.1-sol",
+                "gateway_executed":false,
+                "request":request,
+                "usage_complete":false,
+                "error":error.to_string()
+            }),
+        ),
+    };
+    let directory = std::path::Path::new("artifacts/contract-validation/subscription");
+    std::fs::create_dir_all(directory).unwrap();
+    std::fs::write(
+        directory.join("live-risk-contract-smoke.json"),
+        serde_json::to_vec_pretty(&evidence).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        passed,
+        "live risk contract smoke failed; see sanitized evidence"
     );
 }

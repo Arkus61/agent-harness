@@ -6,7 +6,7 @@
 //! or hostile same-user races. `doctor` therefore never advertises isolation.
 
 use crate::types::{Action, CommandResult, CommandSpec, Grants};
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{ensure, Context, Result};
 use fs2::FileExt;
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use serde_json::{json, Value};
@@ -444,74 +444,11 @@ fn glob_set(patterns: &[String]) -> Result<GlobSet> {
 }
 
 fn protected(path: &Path) -> bool {
-    path.components().any(|component| {
-        let Component::Normal(name) = component else {
-            return false;
-        };
-        let name = name.to_string_lossy().to_ascii_lowercase();
-        matches!(
-            name.as_str(),
-            ".git"
-                | ".harness"
-                | ".ssh"
-                | ".aws"
-                | ".azure"
-                | ".netrc"
-                | ".npmrc"
-                | ".pypirc"
-                | "credentials"
-                | "credentials.json"
-                | "secrets.json"
-                | "id_rsa"
-                | "id_ed25519"
-                | "id_ecdsa"
-                | "id_dsa"
-        ) || name == ".env"
-            || name.starts_with(".env.")
-            || name.ends_with(".pem")
-            || name.ends_with(".key")
-    })
+    crate::policy::is_sensitive_path(path)
 }
 
 fn relative_path(value: &str) -> Result<PathBuf> {
-    ensure!(!value.contains('\0'), "path contains NUL");
-    // Backslashes are separators on Windows, not escape syntax. Reject them on
-    // Unix too so a grant cannot have different traversal meaning across OSes.
-    ensure!(
-        !value.contains('\\'),
-        "use forward slashes in gateway paths"
-    );
-    ensure!(
-        !value.contains(':'),
-        "drive prefixes and alternate data streams are forbidden"
-    );
-    let path = Path::new(value);
-    let mut normalized = PathBuf::new();
-    for component in path.components() {
-        match component {
-            Component::Normal(value) => {
-                let name = value.to_string_lossy();
-                ensure!(
-                    !name.ends_with([' ', '.']),
-                    "trailing spaces/dots are not portable gateway paths"
-                );
-                let stem = name.split('.').next().unwrap_or("").to_ascii_lowercase();
-                ensure!(
-                    !matches!(stem.as_str(), "con" | "prn" | "aux" | "nul")
-                        && !(stem.len() == 4
-                            && (stem.starts_with("com") || stem.starts_with("lpt"))
-                            && stem.as_bytes()[3].is_ascii_digit()),
-                    "Windows device names are forbidden"
-                );
-                normalized.push(value)
-            }
-            Component::CurDir => {}
-            _ => bail!("gateway paths must be relative without parent traversal"),
-        }
-    }
-    ensure!(!normalized.as_os_str().is_empty(), "file path is empty");
-    ensure!(!protected(&normalized), "protected file or directory");
-    Ok(normalized)
+    crate::policy::relative_path(value)
 }
 
 fn match_scope(path: &Path, patterns: &[String]) -> Result<bool> {
@@ -1006,110 +943,6 @@ pub fn search(
     Ok(output)
 }
 
-#[cfg(unix)]
-struct ProcessTree {
-    pid: i32,
-    armed: AtomicBool,
-}
-
-#[cfg(unix)]
-impl ProcessTree {
-    fn attach(pid: u32) -> Result<Self> {
-        Ok(Self {
-            pid: pid as i32,
-            armed: AtomicBool::new(true),
-        })
-    }
-    fn terminate(&self) {
-        if self.armed.swap(false, Ordering::AcqRel) {
-            unsafe {
-                libc::kill(-self.pid, libc::SIGKILL);
-            }
-        }
-    }
-}
-
-#[cfg(unix)]
-impl Drop for ProcessTree {
-    fn drop(&mut self) {
-        self.terminate();
-    }
-}
-
-#[cfg(windows)]
-struct ProcessTree {
-    job: windows_sys::Win32::Foundation::HANDLE,
-}
-
-#[cfg(windows)]
-unsafe impl Send for ProcessTree {}
-
-#[cfg(windows)]
-impl ProcessTree {
-    fn attach(pid: u32) -> Result<Self> {
-        use windows_sys::Win32::Foundation::CloseHandle;
-        use windows_sys::Win32::System::JobObjects::*;
-        use windows_sys::Win32::System::Threading::*;
-        unsafe {
-            let job = CreateJobObjectW(std::ptr::null(), std::ptr::null());
-            ensure!(
-                !job.is_null(),
-                "CreateJobObjectW failed: {}",
-                std::io::Error::last_os_error()
-            );
-            let result = Self { job };
-            let mut limits: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
-            limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-            ensure!(
-                SetInformationJobObject(
-                    job,
-                    JobObjectExtendedLimitInformation,
-                    &limits as *const _ as _,
-                    std::mem::size_of_val(&limits) as u32
-                ) != 0,
-                "cannot configure process job: {}",
-                std::io::Error::last_os_error()
-            );
-            let process = OpenProcess(PROCESS_SET_QUOTA | PROCESS_TERMINATE, 0, pid);
-            ensure!(
-                !process.is_null(),
-                "cannot open spawned process: {}",
-                std::io::Error::last_os_error()
-            );
-            let assigned = AssignProcessToJobObject(job, process);
-            let error = std::io::Error::last_os_error();
-            CloseHandle(process);
-            ensure!(assigned != 0, "cannot assign process job: {error}");
-            Ok(result)
-        }
-    }
-    fn terminate(&self) {
-        unsafe {
-            windows_sys::Win32::System::JobObjects::TerminateJobObject(self.job, 1);
-        }
-    }
-}
-
-#[cfg(windows)]
-impl Drop for ProcessTree {
-    fn drop(&mut self) {
-        self.terminate();
-        unsafe {
-            windows_sys::Win32::Foundation::CloseHandle(self.job);
-        }
-    }
-}
-
-#[cfg(not(any(unix, windows)))]
-struct ProcessTree;
-#[cfg(not(any(unix, windows)))]
-impl ProcessTree {
-    fn attach(_: u32) -> Result<Self> {
-        bail!("native process tree management is unsupported on this OS")
-    }
-    fn terminate(&self) {}
-}
-
 async fn capture<R: AsyncRead + Unpin>(
     mut reader: R,
     budget: Arc<AtomicUsize>,
@@ -1203,15 +1036,8 @@ pub async fn run_command(
             duration_ms: 0,
         });
     }
-    let mut command = tokio::process::Command::new(&spec.program);
-    command
-        .current_dir(cwd)
-        .args(&spec.args)
-        .env_clear()
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .kill_on_drop(true);
+    let (mut command, payload) = crate::supervisor::prepare(&spec.program, &spec.args, false)?;
+    command.current_dir(cwd).env_clear();
     for key in runtime_environment_keys() {
         if let Some(value) = std::env::var_os(key) {
             command.env(key, value);
@@ -1220,24 +1046,7 @@ pub async fn run_command(
     command
         .env("HARNESS_RUNTIME_PROFILE", "native-trusted")
         .env("GIT_TERMINAL_PROMPT", "0");
-    #[cfg(unix)]
-    {
-        command.process_group(0);
-    }
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        command.as_std_mut().creation_flags(0x00000200); // CREATE_NEW_PROCESS_GROUP
-    }
-    let mut child = command.spawn().context("spawn native command")?;
-    let pid = child.id().context("spawned process has no ID")?;
-    let tree = match ProcessTree::attach(pid) {
-        Ok(tree) => tree,
-        Err(error) => {
-            let _ = child.kill().await;
-            return Err(error);
-        }
-    };
+    let (mut child, lease, _lifetime) = crate::supervisor::dispatch(command, &payload).await?;
     let budget = Arc::new(AtomicUsize::new(output_limit));
     let truncated = Arc::new(AtomicBool::new(false));
     let stdout = CaptureTask(tokio::spawn(capture(
@@ -1258,11 +1067,16 @@ pub async fn run_command(
         result = child.wait() => Some(result.context("wait for command")?),
         _ = tokio::time::sleep(Duration::from_secs(spec.timeout_secs)) => { timed_out = true; None },
     };
-    // Cleanup also after a successful parent exit: background children must not
-    // survive and keep writing to a supposedly frozen candidate.
-    tree.terminate();
+    // EOF closes the owner lease. The independent supervisor kills and reaps
+    // the target group, including when this future or coordinator disappears.
+    drop(lease);
     if status.is_none() {
-        let _ = child.kill().await;
+        let cleanup = tokio::time::timeout(Duration::from_secs(2), child.wait()).await;
+        ensure!(
+            cleanup.is_ok(),
+            "supervised process cleanup did not complete; command outcome is unknown"
+        );
+        cleanup.context("supervisor cleanup timed out")??;
     }
     let stdout_bytes = finish_capture(stdout, &truncated).await?;
     let stderr_bytes = finish_capture(stderr, &truncated).await?;
@@ -1295,9 +1109,9 @@ pub fn doctor(repo: Option<&Repo>) -> Value {
         "repository": repo.map(|repo| repo.root.to_string_lossy().into_owned()),
         "runtime_profiles": {
             "native-trusted": { "available": cfg!(any(unix, windows)), "filesystem_confinement": false, "network_confinement": false, "credential_file_confinement": false },
-            "isolated": { "available": false, "reason": "No implemented, probed filesystem/network isolation backend; automatic downgrade is forbidden" }
+            "isolated": crate::isolation::availability()
         },
-        "process_tree": if cfg!(windows) { "JobObject kill-on-close, post-spawn assignment; assignment race is not confinement" } else { "Unix process group; deliberately detached processes can escape native cleanup" },
+        "process_tree": if cfg!(windows) { "Supervisor lease and JobObject kill-on-close; target dispatch follows job assignment" } else { "Supervisor owner pipe, cleanup after owner death and successful exit; deliberately detached native processes can escape process groups" },
         "filesystem_gateway": { "scope_globs": true, "refuses_symlinks_and_junctions": true, "hostile_same_user_race_confinement": false },
         "limitations": ["Native commands have user-level filesystem and network rights", "No native process mechanism is advertised as a sandbox", "OS capabilities require execution on the actual platform"]
     })
