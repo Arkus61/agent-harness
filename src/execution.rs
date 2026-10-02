@@ -479,6 +479,14 @@ fn runtime_environment_keys() -> &'static [&'static str] {
         "SYSTEMROOT",
         "SystemRoot",
         "WINDIR",
+        // Rust/MSVC discovery locates vswhere through these system paths.
+        // Without them it can select Git's unrelated GNU link.exe from PATH.
+        #[cfg(windows)]
+        "ProgramFiles",
+        #[cfg(windows)]
+        "ProgramFiles(x86)",
+        #[cfg(windows)]
+        "ProgramW6432",
         "COMSPEC",
         "PATHEXT",
         "TEMP",
