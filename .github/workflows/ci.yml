@@ -21,6 +21,9 @@ jobs:
         with:
           toolchain: 1.99.0
           components: rustfmt, clippy
+      - name: Configure Windows MSVC toolchain
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

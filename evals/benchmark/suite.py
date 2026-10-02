@@ -11,7 +11,7 @@ import importlib.util
 import io
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import shutil
 import signal
@@ -93,6 +93,7 @@ def require_frozen(path,expected):
 
 def safe_archive_name(name):
     if not name or name.startswith('/') or '\\' in name or '\0' in name:return False
+    if PureWindowsPath(name).drive:return False
     parts=Path(name).parts
     return '..' not in parts and not any(p in {'.git','.cargo','.harness'} for p in parts) and name!='build.rs'
 

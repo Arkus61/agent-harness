@@ -487,6 +487,30 @@ fn runtime_environment_keys() -> &'static [&'static str] {
         "ProgramFiles(x86)",
         #[cfg(windows)]
         "ProgramW6432",
+        // A configured Visual Studio developer environment supplies linker,
+        // SDK and C/C++ discovery paths. Preserve these compiler settings only.
+        #[cfg(windows)]
+        "LIB",
+        #[cfg(windows)]
+        "INCLUDE",
+        #[cfg(windows)]
+        "LIBPATH",
+        #[cfg(windows)]
+        "VCINSTALLDIR",
+        #[cfg(windows)]
+        "VSINSTALLDIR",
+        #[cfg(windows)]
+        "VCToolsInstallDir",
+        #[cfg(windows)]
+        "VCToolsVersion",
+        #[cfg(windows)]
+        "WindowsSdkDir",
+        #[cfg(windows)]
+        "WindowsSDKVersion",
+        #[cfg(windows)]
+        "VSCMD_ARG_TGT_ARCH",
+        #[cfg(windows)]
+        "VSCMD_ARG_HOST_ARCH",
         "COMSPEC",
         "PATHEXT",
         "TEMP",

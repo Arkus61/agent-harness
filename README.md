@@ -26,7 +26,7 @@ export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
 ./target/release/harness --repo ../harness-demo status
 ```
 
-На Windows, PowerShell:
+На Windows для Rust/MSVC нужны Visual Studio Build Tools с компонентами C++ и Windows SDK. Запускайте команды из **Developer PowerShell** или **Developer Command Prompt** Visual Studio, чтобы MSVC linker и SDK были доступны проверкам проекта. В Developer PowerShell:
 
 ```powershell
 if (-not $env:CARGO_HOME) { $env:CARGO_HOME = Join-Path $env:USERPROFILE ".cargo" }
@@ -40,7 +40,7 @@ if (-not $env:RUSTUP_HOME) { $env:RUSTUP_HOME = Join-Path $env:USERPROFILE ".rus
 
 Для Linux isolation установите `bubblewrap` и проверьте `harness doctor`: `runtime_profiles.isolated.available` становится `true` только после реального namespace probe. Задайте `"profile":"isolated"` в task. Команды получают отдельные filesystem/PID/network namespaces, пустой home, скрытые credential paths и read-only trusted toolchain mounts. Workspace остаётся ресурсом команды; это не syscall ownership каждого файла. `protected_paths` замораживаются mounts, а отсутствующий prefix может заморозить ближайший существующий родительский каталог. CPU/RAM/disk quotas пока не реализованы. Cache с legacy Cargo Git registry может не работать offline после скрытия `.git` metadata; заранее проверьте зависимости в выбранном профиле.
 
-Готовый Linux x86_64 executable требует **glibc ≥ 2.39** и системные `libc`, `libm`, `libgcc_s`. Для старой glibc пересоберите исходники в целевой среде. Windows/macOS release-пакеты предусмотрены CI, но их сборки в этой сессии не исполнялись.
+Готовый Linux x86_64 executable требует **glibc ≥ 2.39** и системные `libc`, `libm`, `libgcc_s`. Для старой glibc пересоберите исходники в целевой среде. Сборки Linux/macOS/Windows и результаты проверок публикуются в [GitHub Actions](https://github.com/Arkus61/agent-harness/actions/workflows/ci.yml); бинарные артефакты доступны после успешного завершения соответствующего job. Локальные отчёты выше относятся к указанным в них замороженным исходникам и executable.
 
 `demo` требует **новый, ещё не существующий каталог**. Он создаёт маленький Git/Rust-проект, исправляет ошибку `clamp`, запускает настоящие `cargo test --offline` и четыре scripted reviews. Ожидаемое состояние — **`FIXTURE_VERIFIED`**. Это демонстрация механики: scripted ответы не подтверждают качество модели, не получают production `VERIFIED` и не допускаются к `merge`. Исходный `HEAD` демо-проекта остаётся на baseline; кандидат находится в report и worktree.
 

@@ -85,7 +85,7 @@ class ControllerTests(unittest.TestCase):
 
     def test_archive_names_reject_escape_and_sensitive_build_configuration(self):
         validate=self.api('safe_archive_name')
-        for name in ['../../outside','/absolute','src/../../../escape','.cargo/config.toml','build.rs','.git/config']:
+        for name in ['../../outside','/absolute','src/../../../escape','.cargo/config.toml','build.rs','.git/config','C:/outside','C:relative','c:/outside','c:relative']:
             self.assertFalse(validate(name),name)
         self.assertTrue(validate('src/lib.rs'))
         self.assertTrue(validate('tests/behavior.rs'))
