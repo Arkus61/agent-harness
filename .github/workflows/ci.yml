@@ -62,7 +62,7 @@ jobs:
       - name: Test contracts and recovery
         env:
           HARNESS_REQUIRE_LINUX_ISOLATION: ${{ runner.os == 'Linux' && '1' || '' }}
-        run: cargo test --locked --all-targets
+        run: cargo test --locked --all-targets --no-fail-fast
       - name: Validate independent Rust AST oracle
         run: |
           cargo fmt --manifest-path evals/live/structure-check/Cargo.toml -- --check

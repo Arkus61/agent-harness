@@ -227,8 +227,11 @@ fn real_local_journal_effect_is_not_duplicated_after_reply_is_lost_and_worker_re
     let (root, store) = fixture();
     let journal_root = root.path().join("journal-backend");
     let mut adapter = LocalJournalAdapter::open(&journal_root, "journal").unwrap();
+    let mut live_policy = policy();
+    live_policy.lease_ms = 10_000;
+    let lease_ms = live_policy.lease_ms;
     store
-        .register_outbox_handler(&policy(), adapter.capabilities())
+        .register_outbox_handler(&live_policy, adapter.capabilities())
         .unwrap();
     let delivery = store.claim_outbox("journal", 1000).unwrap().unwrap();
     store.begin_outbox_effect(&delivery, 1001).unwrap();
@@ -242,14 +245,15 @@ fn real_local_journal_effect_is_not_duplicated_after_reply_is_lost_and_worker_re
     drop(store);
     let store = Store::open(root.path()).unwrap();
     let adapter = LocalJournalAdapter::open(&journal_root, "journal").unwrap();
-    let mut worker = OutboxWorker::new(store.clone(), policy(), adapter).unwrap();
-    let summary = worker.tick(1120, 10).unwrap();
+    let mut worker = OutboxWorker::new(store.clone(), live_policy, adapter).unwrap();
+    // Expire the original frozen policy's lease before claiming recovery.
+    let summary = worker.tick(1000 + lease_ms + 120, 10).unwrap();
     assert_eq!(summary.claimed, 1);
     assert_eq!(summary.delivered, 1);
     let adapter = LocalJournalAdapter::open(&journal_root, "journal").unwrap();
     assert_eq!(adapter.effect_count().unwrap(), 1);
     assert_eq!(store.outbox_deliveries("journal").unwrap()[0].attempts, 2);
-    assert_eq!(worker.tick(2000, 10).unwrap().claimed, 0);
+    assert_eq!(worker.tick(1000 + 2 * lease_ms, 10).unwrap().claimed, 0);
 }
 
 #[test]
@@ -438,7 +442,10 @@ fn uncertain_actual_effect_requires_independent_evidence_and_error_text_is_redac
     let adapter = LostReplyWithoutReplay {
         inner: LocalJournalAdapter::open(&backend, "journal").unwrap(),
     };
-    let mut worker = OutboxWorker::new(store.clone(), policy(), adapter).unwrap();
+    let mut live_policy = policy();
+    // Verify an uncertain actual effect, independently of host fsync latency.
+    live_policy.lease_ms = 10_000;
+    let mut worker = OutboxWorker::new(store.clone(), live_policy, adapter).unwrap();
     assert_eq!(worker.tick(1000, 1).unwrap().unknown, 1);
     assert_eq!(
         LocalJournalAdapter::open(&backend, "journal")
