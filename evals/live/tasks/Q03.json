@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "prompt": "Q03: Preserve public fn shipping_rate(region: &str, expedited: bool) -> Option<u32>: exact region \"local\" has standard 5 and expedited 9; \"remote\" has standard 12 and expedited 20; any other string returns None. Preserve case sensitivity and do not trim input. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "Preserve public fn shipping_rate(region: &str, expedited: bool) -> Option<u32>: exact region \"local\" has standard 5 and expedited 9; \"remote\" has standard 12 and expedited 20; any other string returns None. Preserve case sensitivity and do not trim input.",
+    "Refactor production code into private fn rate_table(region: &str) -> Option<(u32,u32)> containing the single mapping of region to (standard,expedited), and have shipping_rate call rate_table. Each literal \"local\" and \"remote\" must occur exactly once in production code outside #[cfg(test)]; shipping_rate must not contain region literals. Add regression tests for all four rates and unknown regions."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**",
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "implement",
+      "prompt": "Implement all requirements; read sources before editing, add regression tests in owned paths.",
+      "requirements": [
+        0,
+        1
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/**",
+        "tests/**"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

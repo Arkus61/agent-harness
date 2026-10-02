@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "prompt": "Q06: Keep src/lib.rs and Cargo files byte-for-byte unchanged. Improve only tests/** for public median3(a:i32,b:i32,c:i32)->i32. Add assertion-based tests covering all six orderings of distinct values, repeated values, negative values, all-equal values, i32::MIN and i32::MAX. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "Keep src/lib.rs and Cargo files byte-for-byte unchanged. Improve only tests/** for public median3(a:i32,b:i32,c:i32)->i32. Add assertion-based tests covering all six orderings of distinct values, repeated values, negative values, all-equal values, i32::MIN and i32::MAX.",
+    "The committed integration tests must pass the current correct implementation and fail each of these predefined faulty implementations: return b; return min(a,b,c); return max(a,b,c). A compiler error is not a valid detection; at least one test assertion must fail for each mutant."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**",
+    "src/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "implement",
+      "prompt": "Implement all requirements; read sources before editing, add regression tests in owned paths.",
+      "requirements": [
+        0,
+        1
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "tests/**"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

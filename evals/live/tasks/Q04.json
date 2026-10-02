@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "prompt": "Q04: In src/arithmetic.rs implement add_percent(value:u32, percent:u32)->u64 as floor(value*(100+percent)/100). Widen operands before addition/multiplication so all u32 inputs, including u32::MAX, work. Retain the module and public re-export. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "In src/arithmetic.rs implement add_percent(value:u32, percent:u32)->u64 as floor(value*(100+percent)/100). Use sufficiently wide intermediate arithmetic before addition/multiplication (u128 is needed at both maximal inputs) so all u32 inputs, including u32::MAX, work. Retain the module and public re-export.",
+    "In src/formatting.rs implement format_cents(cents:u64)->String as decimal integer units, a point, and exactly two fractional digits; e.g. 0 => \"0.00\", 105 => \"1.05\". Support u64::MAX, retain public API.",
+    "Add meaningful inline regression tests in each owned source module: arithmetic zero/floor/large values and formatting zero/small values/padding/large values. The modules must compose through existing public re-exports."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**",
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "arithmetic",
+      "prompt": "Implement the arithmetic contract and inline tests only in src/arithmetic.rs.",
+      "requirements": [
+        0,
+        2
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/arithmetic.rs"
+      ]
+    },
+    {
+      "id": "formatting",
+      "prompt": "Implement the formatting contract and inline tests only in src/formatting.rs.",
+      "requirements": [
+        1,
+        2
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/formatting.rs"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

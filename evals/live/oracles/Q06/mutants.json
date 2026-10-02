@@ -1,0 +1,5 @@
+{
+  "return_middle_argument": "pub fn median3(_a:i32,b:i32,_c:i32)->i32 { b }\n",
+  "return_minimum": "pub fn median3(a:i32,b:i32,c:i32)->i32 { a.min(b).min(c) }\n",
+  "return_maximum": "pub fn median3(a:i32,b:i32,c:i32)->i32 { a.max(b).max(c) }\n"
+}

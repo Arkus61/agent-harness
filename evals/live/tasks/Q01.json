@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "prompt": "Q01: Implement public fn parse_port(input: &str) -> Result<u16, &'static str>. Accept a nonempty sequence of ASCII decimal digits whose numerical value is 1..=65535, including leading zeroes. Reject all other inputs, including 0, overflow, signs, whitespace and Unicode digits, with exactly Err(\"invalid port\"). Keep the API unchanged. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "Implement public fn parse_port(input: &str) -> Result<u16, &'static str>. Accept a nonempty sequence of ASCII decimal digits whose numerical value is 1..=65535, including leading zeroes. Reject all other inputs, including 0, overflow, signs, whitespace and Unicode digits, with exactly Err(\"invalid port\"). Keep the API unchanged.",
+    "Add regression tests covering accepted boundaries and leading zeroes, empty and zero inputs, overflow, signs, whitespace and non-ASCII digits. Tests must use assertions of public behavior."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**",
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "implement",
+      "prompt": "Implement all requirements; read sources before editing, add regression tests in owned paths.",
+      "requirements": [
+        0,
+        1
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/**",
+        "tests/**"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}
