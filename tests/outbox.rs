@@ -260,6 +260,9 @@ fn worker_tick_is_bounded_and_adapter_identity_cannot_change_policy() {
     let mut all = policy();
     all.event_kinds = vec!["*".into()];
     all.max_chain_depth = 16;
+    // This exercises dispatch count, not lease expiry. FULL-sync SQLite I/O
+    // on a loaded runner must fit inside the worker's real-time lease.
+    all.lease_ms = 10_000;
     let mut worker = OutboxWorker::new(store, all, adapter).unwrap();
     assert_eq!(worker.tick(1000, 2).unwrap().claimed, 2);
     assert!(worker.tick(1000, 0).is_err());
@@ -373,7 +376,11 @@ fn competing_real_sqlite_workers_commit_one_backend_effect_and_one_receipt() {
             std::thread::spawn(move || {
                 let store = Store::open(&root).unwrap();
                 let adapter = LocalJournalAdapter::open(root.join("backend"), "journal").unwrap();
-                let mut worker = OutboxWorker::new(store, policy(), adapter).unwrap();
+                let mut live_policy = policy();
+                // Concurrent durable commits require a realistic lease; the
+                // explicit clock-based expiry/fencing tests retain 100 ms.
+                live_policy.lease_ms = 10_000;
+                let mut worker = OutboxWorker::new(store, live_policy, adapter).unwrap();
                 barrier.wait();
                 worker.tick(1000, 1).unwrap().delivered
             })
