@@ -131,6 +131,52 @@ fn git_output(cwd: &Path, args: &[&str]) -> Result<String> {
         .to_owned())
 }
 
+/// Git for Windows rejects Rust's canonical verbatim paths as worktree argv.
+/// Keep those paths for filesystem checks and adapt only this external argument.
+#[cfg(windows)]
+fn git_worktree_argument(path: &Path) -> Result<PathBuf> {
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStrExt;
+    use std::path::Prefix;
+
+    let mut components = path.components();
+    let Some(Component::Prefix(prefix)) = components.next() else {
+        return Ok(path.to_owned());
+    };
+    let mut argument = match prefix.kind() {
+        Prefix::VerbatimDisk(drive) => PathBuf::from(format!("{}:", char::from(drive))),
+        Prefix::VerbatimUNC(server, share) => {
+            let mut value = OsString::from("\\\\");
+            value.push(server);
+            value.push("\\");
+            value.push(share);
+            PathBuf::from(value)
+        }
+        Prefix::Verbatim(_) | Prefix::DeviceNS(_) => {
+            anyhow::bail!("Git worktrees do not support Windows device paths")
+        }
+        _ => return Ok(path.to_owned()),
+    };
+    argument.extend(components.map(|component| component.as_os_str()));
+    let name = path.file_name().context("worktree filename unavailable")?;
+    ensure!(
+        !matches!(name.encode_wide().last(), Some(0x20 | 0x2e)),
+        "Git worktree filename cannot end with a space or dot"
+    );
+    ensure!(
+        argument
+            .parent()
+            .context("Git worktree argument has no parent")?
+            .canonicalize()?
+            == path
+                .parent()
+                .context("worktree path has no parent")?
+                .canonicalize()?,
+        "Git worktree argument resolves to a different parent"
+    );
+    Ok(argument)
+}
+
 impl Repo {
     pub fn discover(path: &Path) -> Result<Self> {
         Self::discover_inner(path, true)
@@ -229,6 +275,8 @@ impl Repo {
             "worktree already exists or is inaccessible"
         );
         let sha = self.commit_id(sha)?;
+        #[cfg(windows)]
+        let path = git_worktree_argument(&path)?;
         let mut cmd = safe_git(&self.root)?;
         let output = cmd
             .args(["worktree", "add", "--detach"])
@@ -1362,6 +1410,27 @@ mod tests {
         let repo = Repo::discover(directory.path()).unwrap();
         let base = repo.commit(directory.path(), "initial").unwrap();
         (directory, repo, base)
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn canonical_non_ascii_worktree_paths_remain_usable_by_git() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path().join("repository-репозиторий");
+        fs::create_dir(&root).unwrap();
+        let receipt = basic_git(&root).args(["init", "-q"]).output().unwrap();
+        assert!(receipt.status.success());
+        fs::write(root.join("base.txt"), "base\n").unwrap();
+        let repo = Repo::discover(&root).unwrap();
+        let base = repo.commit(&root, "initial").unwrap();
+        let worktree = repo.state_dir.join("worktrees/nested/ветка");
+        repo.create_worktree(&worktree, &base).unwrap();
+        assert_eq!(repo.head_at(&worktree).unwrap(), base);
+        assert_eq!(
+            fs::read_to_string(worktree.join("base.txt")).unwrap(),
+            "base\n"
+        );
+        assert_eq!(repo.head().unwrap(), base);
     }
 
     #[test]
