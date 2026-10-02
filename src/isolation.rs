@@ -144,7 +144,8 @@ mod linux {
         );
         ensure!(
             metadata.mode() & 0o022 == 0,
-            "isolation mount source is group/world writable"
+            "isolation mount source is group/world writable: {}",
+            path.display()
         );
         Ok(canonical)
     }

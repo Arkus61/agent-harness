@@ -21,10 +21,27 @@ jobs:
         with:
           toolchain: 1.99.0
           components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Expose Rust locations to isolation checks
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
+              for name, directory in [("CARGO_HOME", ".cargo"), ("RUSTUP_HOME", ".rustup")]:
+                  value = os.environ.get(name) or str(Path.home() / directory)
+                  environment.write(f"{name}={value}\n")
       - uses: Swatinem/rust-cache@v2
-      - name: Install required Linux isolation backend
+      - name: Prepare required Linux isolation backend
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          # Runner images make /usr/lib/jvm world-writable. Its alternatives
+          # must satisfy the same immutable system-tool checks as local hosts.
+          sudo chmod -R go-w /usr/lib/jvm
       - name: Format
         run: cargo fmt --all -- --check
       - name: Clippy
@@ -41,9 +58,6 @@ jobs:
           cargo fmt --manifest-path evals/benchmark/structure-check/Cargo.toml -- --check
           cargo clippy --locked --manifest-path evals/benchmark/structure-check/Cargo.toml -- -D warnings
           cargo test --locked --manifest-path evals/benchmark/structure-check/Cargo.toml
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Validate oracle CLI and fail-closed controller
         run: |
           python tests/evaluation_oracle.py -v

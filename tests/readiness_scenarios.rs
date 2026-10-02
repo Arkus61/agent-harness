@@ -162,6 +162,10 @@ impl Server {
                 );
                 match listener.accept() {
                     Ok((mut stream, _)) => {
+                        // Accepted sockets inherit the listener's nonblocking
+                        // mode on macOS. Read the fixture request in blocking
+                        // mode on every platform, with the bounds below.
+                        stream.set_nonblocking(false).unwrap();
                         stream
                             .set_read_timeout(Some(Duration::from_secs(5)))
                             .unwrap();
