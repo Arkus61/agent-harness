@@ -92,6 +92,25 @@ impl PrivateDir {
 }
 impl Drop for PrivateDir {
     fn drop(&mut self) {
+        #[cfg(windows)]
+        {
+            // Closing the lifetime job requests termination; Windows releases
+            // the processes' cwd handles asynchronously. Retry transient locks
+            // within the same bound used for supervisor cleanup.
+            let deadline = std::time::Instant::now() + Duration::from_secs(2);
+            loop {
+                match std::fs::remove_dir_all(&self.0) {
+                    Err(error)
+                        if matches!(error.raw_os_error(), Some(5 | 32 | 33 | 145))
+                            && std::time::Instant::now() < deadline =>
+                    {
+                        std::thread::sleep(Duration::from_millis(10));
+                    }
+                    _ => break,
+                }
+            }
+        }
+        #[cfg(not(windows))]
         let _ = std::fs::remove_dir_all(&self.0);
     }
 }
