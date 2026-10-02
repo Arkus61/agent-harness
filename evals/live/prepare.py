@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import tempfile
 
-from accept import ROOT, IDS, directory_hash, evaluate, file_hash, git
+from accept import ROOT, IDS, directory_hash, evaluate, file_hash, git, structure_checker_sources_hash
 
 CLASSES = {"Q01": "feature", "Q02": "bug_fix", "Q03": "behavior_preserving_refactor",
            "Q04": "parallel_components", "Q05": "dependency_integration", "Q06": "test_quality_mutation"}
@@ -41,7 +41,8 @@ def main() -> int:
                 "created_utc": datetime.now(timezone.utc).isoformat(),
                 "model": "gpt-6.1-sol", "trials_per_task": 3, "full_30_task_benchmark": False,
                 "oracle_profile": "native-trusted", "external_oracles_isolated": False,
-                "controller_sha256": file_hash(ROOT / "accept.py"), "tasks": []}
+                "controller_sha256": file_hash(ROOT / "accept.py"),
+                "structure_checker_sources_sha256": structure_checker_sources_hash(), "tasks": []}
     success = True
     for task_id in args.task_id or IDS:
         seed = output / task_id

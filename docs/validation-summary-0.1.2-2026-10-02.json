@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-02T08:26:31.040500+00:00",
+  "overall_status": "PASS_FUNCTIONAL_LINUX_CORE_AND_BOUNDED_PILOT",
+  "version": "0.1.2",
+  "platform": "Linux x86_64",
+  "runtime_provenance": {
+    "implementation_commit": "d532e47517460893a9e67047969d66c7524ea1c5",
+    "code_sha256": "327d3077d9033db507dc17a83f809f8309efa22883ab95b1b93f41d02e193c0e",
+    "binary_sha256": "bbd2b6b461137ebdd7609d35c3a31d27ff40aee715eb54c2fbfe0b0a01f9044b",
+    "binary_bytes": 11820328,
+    "binary": "/workspace/harness/artifacts/contract-validation/release/harness",
+    "version": "harness 0.1.2"
+  },
+  "local": {
+    "status": "PASS",
+    "core_tests_passed": 129,
+    "core_tests_failed": 0,
+    "manual_live_ignored_in_default_suite": 1,
+    "format": "PASS",
+    "clippy_all_targets": "PASS",
+    "release_build": "PASS",
+    "component_assertions_passed": 20,
+    "demo_state": "FIXTURE_VERIFIED",
+    "real_linux_boundary_tests_in_core_count": 8,
+    "evidence": "artifacts/contract-validation/local/summary.json"
+  },
+  "independent_ast_grader": {
+    "status": "PASS",
+    "rust_unit_tests": 8,
+    "python_cli_and_controller_tests": 23,
+    "evidence": "artifacts/contract-validation/oracle-fix/validation.json"
+  },
+  "native_enforced_pilot": {
+    "tasks": 6,
+    "fresh_trials": 18,
+    "verified": 18,
+    "checks_and_four_reviews_passed": 18,
+    "exact_candidate_binding_failures": 0,
+    "original_oracle_passed": 15,
+    "original_oracle_failed": 3,
+    "supplemental_q03_regrade_passed": 3,
+    "corrected_independent_acceptance_passed": 18,
+    "stable_tasks_after_amendment": 6,
+    "original_receipts_preserved": true,
+    "regrade_model_calls": 0,
+    "observed_input_tokens": 1465445,
+    "observed_output_tokens": 46879,
+    "observed_tokens": 1512324,
+    "complete_calls": 205,
+    "unknown_calls": 0,
+    "reservations": 0,
+    "accepted_candidates": [
+      {
+        "task_id": "Q01",
+        "repeat": 1,
+        "candidate_sha": "e549412e18136458f6c9c3da35c4a5c2f74dc2ca",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q01",
+        "repeat": 2,
+        "candidate_sha": "d7e8bdf625a2a69044f5dc83fe9778a2cda4c8a1",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q01",
+        "repeat": 3,
+        "candidate_sha": "9d487df6156dc9f57f7f4f9d17ca15f004749b40",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q02",
+        "repeat": 1,
+        "candidate_sha": "c9a29d584d437539f5bcde7c7410a1eb7034d4e5",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q02",
+        "repeat": 2,
+        "candidate_sha": "05a941370f86e6b36330185066a32dba268ef49e",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q02",
+        "repeat": 3,
+        "candidate_sha": "00f79730cd59913961793d885e68097671903b60",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q03",
+        "repeat": 1,
+        "candidate_sha": "58fd9e9d76b3470bc36eb44d12065ef53636ffe5",
+        "oracle_receipt_source": "supplemental AST regrade",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q03",
+        "repeat": 2,
+        "candidate_sha": "34f04cafd9058ee6087ce489c1eaf3cfd13d5db9",
+        "oracle_receipt_source": "supplemental AST regrade",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q03",
+        "repeat": 3,
+        "candidate_sha": "29a84095c87c76eac9d1cd5745c9c60c3593801b",
+        "oracle_receipt_source": "supplemental AST regrade",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q04",
+        "repeat": 1,
+        "candidate_sha": "2ee05a365e6e83b4665a16ef37fabf262fe67f47",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q04",
+        "repeat": 2,
+        "candidate_sha": "99e155f31fe2ad35aace86e1117ceb8b244fe2c8",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q04",
+        "repeat": 3,
+        "candidate_sha": "b5b2a85f33bf57d78fddb3d2940d093a5cc68469",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q05",
+        "repeat": 1,
+        "candidate_sha": "df276e14faff6c9e58108d188094b1d5b573e286",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q05",
+        "repeat": 2,
+        "candidate_sha": "d5dcb70396145db24ac6d912d58a81e0f1b9c5ff",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q05",
+        "repeat": 3,
+        "candidate_sha": "bc18288a9dc145bcc9887ddd9ce848a07d3cce23",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q06",
+        "repeat": 1,
+        "candidate_sha": "781613e450db95c5cab637c588bb774b7635fc92",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q06",
+        "repeat": 2,
+        "candidate_sha": "491b68ad805bafdbd5383cb94e8f0fd463df5bea",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      },
+      {
+        "task_id": "Q06",
+        "repeat": 3,
+        "candidate_sha": "f71f41a6836751ca5a16a1f31564b69760590d4b",
+        "oracle_receipt_source": "original",
+        "status": "PASS"
+      }
+    ],
+    "original_evidence": "artifacts/contract-validation/live/summary.json",
+    "amendment_evidence": "artifacts/contract-validation/oracle-amendment/summary.json"
+  },
+  "isolated_full_pilot": {
+    "status": "PASS",
+    "task_id": "Q02",
+    "trials": 1,
+    "state": "VERIFIED",
+    "candidate_sha": "20443ec9e3a5d6bc6ad200e21574283fb9c19395",
+    "elapsed_seconds": 115.177,
+    "observed_tokens": 71937,
+    "complete_calls": 10,
+    "unknown_calls": 0,
+    "reservations": 0,
+    "all_decision_scopes_isolated": true,
+    "external_oracle_profile": "native-trusted",
+    "external_oracle_isolated": false,
+    "evidence": "artifacts/contract-validation/isolated-pilot/result.json"
+  },
+  "unavailable_backend_fail_closed": {
+    "status": "PASS",
+    "method": "Actual backend path hidden in the trusted coordinator test namespace; requested isolated profile fails closed before model/tool dispatch",
+    "exit_code": 2,
+    "state": "BLOCKED",
+    "error": "isolated profile unavailable; no native downgrade: Linux isolation probe failed: invalid isolation mount source type",
+    "attempts": 0,
+    "model_intents": 0,
+    "action_intents": 0,
+    "binary_sha256": "bbd2b6b461137ebdd7609d35c3a31d27ff40aee715eb54c2fbfe0b0a01f9044b",
+    "command": [
+      "/usr/bin/bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--new-session",
+      "--ro-bind",
+      "/",
+      "/",
+      "--proc",
+      "/proc",
+      "--dev",
+      "/dev",
+      "--bind",
+      "/workspace/harness/artifacts/contract-validation/fail-closed/repo",
+      "/workspace/harness/artifacts/contract-validation/fail-closed/repo",
+      "--ro-bind",
+      "/dev/null",
+      "/usr/bin/bwrap",
+      "--",
+      "/workspace/harness/artifacts/contract-validation/release/harness",
+      "--repo",
+      "/workspace/harness/artifacts/contract-validation/fail-closed/repo",
+      "run",
+      "--task",
+      "/workspace/harness/artifacts/contract-validation/fail-closed/task.json"
+    ],
+    "fixture": true
+  },
+  "test_quality": {
+    "scope": "Six representative exact candidates only",
+    "summary": {
+      "representative_tasks_audited": 6,
+      "test_quality_pass": 6,
+      "unique_added_test_functions_in_representatives": 26,
+      "isolated_exact_candidate_tasks_pass": 5,
+      "isolated_baseline_faulty_module_restorations_killed": 6,
+      "native_existing_Q06_mutants_killed": 3,
+      "Q03_baseline_behavior_with_added_tests": "PASS_EXPECTED",
+      "frozen_oracle_defects_found": 1,
+      "full_30_task_benchmark": false
+    },
+    "evidence": "artifacts/contract-validation/test-quality-audit.json"
+  },
+  "performance": {
+    "scope": "Warm CLI subprocess samples, concurrent single live pilot; not full cold-start/dispatch/RSS benchmark",
+    "binary_sha256": "bbd2b6b461137ebdd7609d35c3a31d27ff40aee715eb54c2fbfe0b0a01f9044b",
+    "warm_cli": {
+      "--version": {
+        "count": 200,
+        "warmups": 20,
+        "p50_ms": 2.013669,
+        "p95_ms": 2.482247,
+        "max_ms": 3.783226
+      },
+      "doctor": {
+        "count": 30,
+        "warmups": 3,
+        "p50_ms": 24.39842,
+        "p95_ms": 28.685438,
+        "max_ms": 31.6592
+      },
+      "eval": {
+        "count": 20,
+        "warmups": 2,
+        "p50_ms": 6.345411,
+        "p95_ms": 14.011065,
+        "max_ms": 16.496253
+      }
+    },
+    "evidence": "artifacts/contract-validation/performance/summary.json"
+  },
+  "scenario_catalog": {
+    "schema_valid": true,
+    "catalog_valid": true,
+    "scenarios": 42,
+    "mappings": 73,
+    "missing_mappings": [],
+    "fully_executed_scenarios_claimed": 0
+  },
+  "full_30_task_benchmark_executed": false,
+  "complete_system_scenarios_executed": 0,
+  "windows_execution": "NOT_EXECUTED",
+  "macos_execution": "NOT_EXECUTED",
+  "limitations": [
+    "Six public toy cases are not a frozen 30-task benchmark, hidden holdout or B0/B1/H comparison.",
+    "Only Linux bubblewrap has implemented and probed isolation; other systems fail closed for isolated.",
+    "CPU, memory and disk quotas are not implemented; kernel exploits and hostile same-UID host races are outside the boundary.",
+    "Native commands run with user permissions; deliberately detached native children may escape process-group cleanup.",
+    "Unknown secrets in ordinary source are not automatically identified. Credential masking can break legacy Cargo Git registry caches.",
+    "External acceptance oracles in these receipts run native-trusted; typed binding does not establish arbitrary review explanation truth.",
+    "Monetary billing, subscription quota and full performance/crash/power-loss/calibration gates remain unverified."
+  ],
+  "frozen_manifest_controller": {
+    "status": "PASS",
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tests/evaluation_manifest.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.427,
+    "test_methods": 9,
+    "each_checks_normal_and_optimized_python": true,
+    "cli_invocations": 20,
+    "model_or_harness_dispatches": 0,
+    "runner_sha256": "d7b9c9a29a3e9152d543afdea9599ba2dbc3ad3469b56fba0f171d226db3cc7a",
+    "test_sha256": "6cd0fd21d6cc3b60bd6c47e9dd711db95ea82b58ef5c16c80a73f999fcb52f8b",
+    "controller_sha256": "5d68328d88c8584705efa9c892f9d97e20b9286edbaf662a07cb73af426648d5",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "f2a3a10ff1f60f4a131c51852e033230116771c444fb4e40dfa20c0bb092dbe0",
+    "red_evidence": [
+      "manifest-baseline-red.json",
+      "manifest-stale-receipt-red.json"
+    ]
+  }
+}

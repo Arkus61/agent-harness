@@ -20,6 +20,13 @@ import time
 
 ROOT = Path(__file__).resolve().parent
 IDS = [f"Q{i:02}" for i in range(1, 7)]
+STRUCTURE_CHECKER = ROOT / "structure-check"
+STRUCTURE_SOURCES = ("Cargo.toml", "Cargo.lock", "src/main.rs")
+STRUCTURE_CRITERIA = {
+    "private_rate_table", "single_local_literal", "single_remote_literal",
+    "shipping_calls_table", "shipping_no_region_literals",
+}
+_STRUCTURE_CHECKER_CACHE = None
 
 
 def file_hash(path: Path) -> str:
@@ -63,19 +70,82 @@ def git(repo: Path, *args: str) -> str:
     return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
 
 
-def structural_check(candidate: Path) -> dict:
-    source = (candidate / "src/lib.rs").read_text()
-    production = source.split("#[cfg(test)]", 1)[0]
-    shipping = production.split("pub fn shipping_rate", 1)[1] if "pub fn shipping_rate" in production else ""
-    checks = {
-        "private_rate_table": re.search(r"(?m)^\s*fn\s+rate_table\s*\(", production) is not None,
-        "single_local_literal": production.count('"local"') == 1,
-        "single_remote_literal": production.count('"remote"') == 1,
-        "shipping_calls_table": re.search(r"rate_table\s*\(\s*region\s*\)", shipping) is not None,
-        "shipping_no_region_literals": '"local"' not in shipping and '"remote"' not in shipping,
+def structure_checker_sources_hash() -> str:
+    """Canonical digest of the three fixed checker build inputs, in this order."""
+    digest = hashlib.sha256()
+    for relative in STRUCTURE_SOURCES:
+        digest.update(relative.encode() + b"\0")
+        digest.update((STRUCTURE_CHECKER / relative).read_bytes() + b"\0")
+    return digest.hexdigest()
+
+
+def prepare_structure_checker() -> tuple[Path, dict]:
+    """Build trusted fixed sources; cache only a still-matching source/binary pair."""
+    global _STRUCTURE_CHECKER_CACHE
+    source_hash = structure_checker_sources_hash()
+    executable = STRUCTURE_CHECKER / "target/release" / (
+        "harness-structure-check.exe" if os.name == "nt" else "harness-structure-check")
+    if _STRUCTURE_CHECKER_CACHE is not None:
+        previous = _STRUCTURE_CHECKER_CACHE
+        if (previous["checker_source_sha256"] == source_hash and executable.is_file()
+                and file_hash(executable) == previous["checker_executable_sha256"]):
+            return executable, dict(previous)
+    command = ["cargo", "build", "--locked", "--offline", "--release",
+               "--manifest-path", str(STRUCTURE_CHECKER / "Cargo.toml"),
+               "--target-dir", str(STRUCTURE_CHECKER / "target")]
+    env = os.environ.copy()
+    env["CARGO_NET_OFFLINE"] = "true"
+    env["CARGO_TERM_COLOR"] = "never"
+    try:
+        build = subprocess.run(command, cwd=ROOT, env=env, capture_output=True,
+                               text=True, timeout=180)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError("trusted AST checker build unavailable or timed out") from exc
+    if build.returncode != 0 or not executable.is_file():
+        raise RuntimeError("trusted AST checker build failed")
+    if structure_checker_sources_hash() != source_hash:
+        raise RuntimeError("trusted AST checker sources changed during build")
+    provenance = {
+        "checker_source_sha256": source_hash,
+        "checker_executable_sha256": file_hash(executable),
+        "checker_source_files_sha256": {
+            relative: file_hash(STRUCTURE_CHECKER / relative)
+            for relative in STRUCTURE_SOURCES
+        },
+        "checker_build": {"command": command, "locked": True, "offline": True},
     }
-    return {"status": "PASS" if all(checks.values()) else "FAIL", "checks": checks,
-            "scope": "explicit toy refactor contract; syntax-level assertions, not a Rust parser"}
+    _STRUCTURE_CHECKER_CACHE = provenance
+    return executable, dict(provenance)
+
+
+def structural_check(candidate: Path) -> dict:
+    """Inspect an exact Rust AST; unavailable or invalid evidence fails closed."""
+    provenance = {}
+    try:
+        executable, provenance = prepare_structure_checker()
+        process = subprocess.run([str(executable), str(candidate / "src/lib.rs")],
+                                 cwd=ROOT, capture_output=True, text=True, timeout=10)
+        if len(process.stdout.encode()) > 65536:
+            raise RuntimeError("AST checker output exceeded limit")
+        result = json.loads(process.stdout)
+        if not isinstance(result, dict) or result.get("status") not in {"PASS", "FAIL", "ERROR"}:
+            raise RuntimeError("AST checker returned an invalid status")
+        if process.returncode != {"PASS": 0, "FAIL": 1, "ERROR": 2}[result["status"]]:
+            raise RuntimeError("AST checker status and exit code disagree")
+        if result["status"] != "ERROR":
+            checks = result.get("checks", {})
+            if (not isinstance(checks, dict) or set(checks) != STRUCTURE_CRITERIA
+                    or not all(type(value) is bool for value in checks.values())
+                    or (result["status"] == "PASS") != all(checks.values())):
+                raise RuntimeError("AST checker returned invalid criteria")
+        if (structure_checker_sources_hash() != provenance["checker_source_sha256"]
+                or file_hash(executable) != provenance["checker_executable_sha256"]):
+            raise RuntimeError("AST checker sources or executable changed during grading")
+        return {**result, **provenance}
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired):
+        return {"status": "ERROR", "checks": {},
+                "error": "trusted AST structure checker unavailable or invalid; no fallback",
+                **provenance}
 
 
 def evaluate(task_id: str, repo: Path, candidate_ref: str) -> dict:

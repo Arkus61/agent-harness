@@ -39,6 +39,11 @@ def resolved(value):
     return path if path.is_absolute() else ROOT / path
 
 
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
 def git(repo, *args):
     return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
 
@@ -55,9 +60,6 @@ def run_trial(task, repeat, config):
     trial_dir = config.output / task["id"] / f"trial-{repeat}"
     result_file = trial_dir / "result.json"
     if result_file.exists():
-        result = json.loads(result_file.read_text())
-        if config.skip_existing:
-            return result
         raise RuntimeError(f"Existing trial must not be overwritten: {trial_dir}")
     trial_dir.mkdir(parents=True, exist_ok=False)
     repo = trial_dir / "repo"
@@ -74,17 +76,20 @@ def run_trial(task, repeat, config):
         "limits": "Trusted native toy fixture; independent oracle is not an isolation boundary.",
     }
     try:
-        assert task_hash == task["task_sha256"], "Frozen task hash mismatch"
-        assert accept.directory_hash(resolved(task["fixture_source_dir"])) == task["fixture_sha256"], "Frozen fixture source changed"
-        assert accept.directory_hash(resolved(task["oracle_file"]).parent) == task["oracle_sha256"], "Frozen oracle changed"
+        require(digest(ROOT / "evals/live/accept.py") == config.controller_sha256, "Frozen controller changed during run")
+        require(accept.structure_checker_sources_hash() == config.structure_checker_sources_sha256, "Frozen structure checker changed during run")
+        require(task_hash == task["task_sha256"], "Frozen task hash mismatch")
+        require(accept.directory_hash(resolved(task["fixture_source_dir"])) == task["fixture_sha256"], "Frozen fixture source changed")
+        require(accept.directory_hash(resolved(task["oracle_file"]).parent) == task["oracle_sha256"], "Frozen oracle changed")
+        require(git(fixture, "rev-parse", "HEAD") == task["baseline_sha"], "Fixture baseline changed")
         subprocess.run(
             ["git", "clone", "--quiet", "--local", "--no-hardlinks", str(fixture), str(repo)],
             check=True, capture_output=True,
         )
         baseline = git(repo, "rev-parse", "HEAD")
-        assert baseline == task["baseline_sha"], "Fixture baseline changed"
+        require(baseline == task["baseline_sha"], "Fixture baseline changed")
         before = tracked_snapshot(repo)
-        assert not git(repo, "status", "--porcelain", "--untracked-files=no")
+        require(not git(repo, "status", "--porcelain", "--untracked-files=no"), "Fixture baseline is dirty")
         result["baseline_sha"] = baseline
         with LOCK:
             print(json.dumps({"task_id": task["id"], "repeat": repeat, "status": "RUNNING", "baseline_sha": baseline}), flush=True)
@@ -163,6 +168,7 @@ def run_trial(task, repeat, config):
                 and result["oracle"].get("oracle_sha256") == task["oracle_sha256"]
                 and result["oracle"].get("baseline_fixture_sha256") == task["fixture_sha256"]
                 and result["oracle"].get("controller_sha256") == config.controller_sha256
+                and (task["id"] != "Q03" or result["oracle"].get("structure", {}).get("checker_source_sha256") == config.structure_checker_sources_sha256)
             )
         else:
             result["oracle"] = {"status": "NOT_EXECUTED", "reason": "No candidate commit"}
@@ -206,11 +212,15 @@ def main():
     parser.add_argument("--cargo-home", type=Path)
     parser.add_argument("--rustup-home", type=Path)
     config = parser.parse_args()
+    if config.skip_existing:
+        parser.error("--skip-existing is disabled: historical receipts cannot certify fresh inputs; choose a fresh --output")
     config.output = config.output.resolve()
     config.binary = config.binary.resolve()
     manifest = json.loads(config.manifest.read_text())
     config.controller_sha256 = manifest["controller_sha256"]
-    assert digest(ROOT / "evals/live/accept.py") == config.controller_sha256, "Frozen controller changed"
+    require(digest(ROOT / "evals/live/accept.py") == config.controller_sha256, "Frozen controller changed")
+    config.structure_checker_sources_sha256 = manifest["structure_checker_sources_sha256"]
+    require(accept.structure_checker_sources_hash() == config.structure_checker_sources_sha256, "Frozen structure checker changed")
     tasks = [task for task in manifest["tasks"] if not config.task_id or task["id"] in config.task_id]
     if not tasks:
         parser.error("No selected tasks")

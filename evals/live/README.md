@@ -25,7 +25,10 @@ The tracked `manifest.json` describes the original validation seeds under
 `artifacts/full-validation/fixture-repos`; those Git repositories are generated
 data rather than tracked templates. Reproduction generates a new manifest with
 its own absolute seed paths. Keep task/oracle/controller hashes fixed throughout
-one run. The controls and oracle tests are curated for this pilot, not a hidden
+one run. `--skip-existing` fails closed: historical receipts are retained for
+inspection and cannot certify a fresh trial. Preparation also freezes the AST checker's Cargo.toml, Cargo.lock and
+src/main.rs digest. Historical manifests without that field remain evidence;
+generate a fresh manifest to run the current controller. The controls and oracle tests are curated for this pilot, not a hidden
 holdout set.
 
 `accept.py --task-id Q02 --repo REPO --candidate COMMIT --output RESULT.json`
@@ -46,7 +49,20 @@ are local and Cargo runs with `--locked --offline`.
 Q03's baseline already has correct behavior. It fails the explicit structural
 contract: a private `rate_table` must hold each region mapping once and
 `shipping_rate` must delegate to it. This syntax-level check is intentionally
-narrow and is not a general code-quality measure.
+narrow and is not a general code-quality measure. The trusted standalone
+[Rust AST checker](structure-check/README.md) uses `syn`, so placing the helper
+before or after the public function has identical results. Its dependencies must
+first be available in the Cargo cache; grading builds with `--locked --offline`,
+records source and executable SHA256, and fails closed without a text fallback.
+Run `python3 tests/evaluation_oracle.py -v` for its CLI/controller contracts.
+Run `python3 tests/evaluation_manifest.py -v` to verify frozen-input rejection
+before dispatch, including optimized Python and preservation of existing receipts.
+
+The 0.1.2 original frozen receipts remain 15/18 PASS. The three Q03 failures were
+caused by the old checker including following functions in `shipping_rate`'s
+body. Separate supplemental receipts recheck the same commits with unchanged
+requirements and behavior tests: corrected acceptance is 18/18. See
+[amendment evidence](../../artifacts/contract-validation/oracle-amendment/summary.json).
 
 Q06's baseline library is also correct. Its original smoke test cannot detect the
 `return b` mutant. The external controller substitutes three predefined faulty

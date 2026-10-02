@@ -751,9 +751,9 @@ harness eval
 
 Доказательства: OS/kernel/runtime version, effective permissions, negative probes.
 
-Покрытие: **planned**; полный сценарий не зачтён. Режимы: os_probes.
+Покрытие: **partial**; полный сценарий не зачтён. Режимы: os_probes.
 
-Ограничения: Isolated runtime сейчас не реализован; fail-closed S38 не означает прохождение S37.
+Linux bubblewrap проверен семью реальными [boundary tests](../tests/isolation.rs) и тестом скрытия Cargo registry credentials. [Отчёт 0.1.2](VALIDATION_REPORT_0.1.2_2026-10-02.md) связывает их с executable и probe. Windows/macOS и совокупные CPU/memory/disk quotas не подтверждены.
 
 ### S38. Strict требуется, доступен native
 
@@ -771,7 +771,7 @@ harness eval
 
 Покрытие: **partial**; полный сценарий не зачтён. Режимы: mechanical.
 
-- [tests/end_to_end.rs](../tests/end_to_end.rs) → `isolated_profile_fails_closed_before_actions`: Isolated rejects before attempts/action/model intents. Не проверяет future override hierarchy и не доказывает kernel isolation. Platform scope: portable.
+- [tests/end_to_end.rs](../tests/end_to_end.rs) → `isolated_profile_uses_probed_backend_or_fails_closed_before_actions`: доступный isolated backend проходит fixture pipeline; недоступный отказывает до attempts/action/model intents. Дополнительный [masked-backend CLI probe](../artifacts/contract-validation/fail-closed/result.json) подтверждает отказ на Linux. Future override hierarchy и все ОС не проверены.
 
 ### S39. Непроверенный внешний plugin
 
