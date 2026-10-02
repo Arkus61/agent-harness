@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "prompt": "Q02: Fix public fn clamp(value: i32, low: i32, high: i32) -> i32 for low <= high. Values below low return low, values above high return high, all values inside the inclusive range return themselves. Equal bounds return that bound; handle i32::MIN and i32::MAX without overflow. Behavior for low > high is outside this task. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "Fix public fn clamp(value: i32, low: i32, high: i32) -> i32 for low <= high. Values below low return low, values above high return high, all values inside the inclusive range return themselves. Equal bounds return that bound; handle i32::MIN and i32::MAX without overflow. Behavior for low > high is outside this task.",
+    "Add assertion-based regression tests for below/inside/above, both boundaries, equal bounds, negative bounds and extreme i32 values."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**",
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "implement",
+      "prompt": "Implement all requirements; read sources before editing, add regression tests in owned paths.",
+      "requirements": [
+        0,
+        1
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/**",
+        "tests/**"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

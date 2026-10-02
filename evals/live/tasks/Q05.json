@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "prompt": "Q05: In src/parser.rs implement parse_line(line:&str)->Option<(u32,u32)> for exactly quantity,unit_price_cents. Each field may have surrounding ASCII whitespace, then must contain nonempty ASCII digits fitting u32; leading zeroes and numerical zero are accepted. Reject missing/extra fields, signs, overflow, Unicode whitespace/digits. Return quantity first and price second. The complete requirements below are authoritative. Do not claim command verification: the trusted controller runs cargo test.",
+  "requirements": [
+    "In src/parser.rs implement parse_line(line:&str)->Option<(u32,u32)> for exactly quantity,unit_price_cents. Each field may have surrounding ASCII whitespace, then must contain nonempty ASCII digits fitting u32; leading zeroes and numerical zero are accepted. Reject missing/extra fields, signs, overflow, Unicode whitespace/digits. Return quantity first and price second.",
+    "In src/billing.rs implement invoice_total(line:&str)->Option<u64> by calling parser::parse_line and multiplying quantity and unit price with operands widened to u64; malformed lines return None, all u32 values must avoid overflow. Preserve modules and existing public exports.",
+    "Add meaningful inline regression tests for parser order, accepted whitespace, malformed input, invoice zero and multiplication of u32::MAX values, and integrated rejection of malformed lines."
+  ],
+  "grants": {
+    "read": [
+      "src/**",
+      "tests/**",
+      "Cargo.toml",
+      "Cargo.lock"
+    ],
+    "write": [
+      "src/**",
+      "tests/**"
+    ],
+    "commands": []
+  },
+  "checks": [
+    {
+      "program": "cargo",
+      "args": [
+        "test",
+        "--locked",
+        "--offline"
+      ],
+      "timeout_secs": 120
+    }
+  ],
+  "protected_paths": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "acceptance/**"
+  ],
+  "provider": {
+    "kind": "chatgpt",
+    "codex_program": "codex",
+    "model": "gpt-6.1-sol",
+    "allow_remote": true
+  },
+  "nodes": [
+    {
+      "id": "parser",
+      "prompt": "Implement parser contract and inline tests only in src/parser.rs.",
+      "requirements": [
+        0,
+        2
+      ],
+      "depends_on": [],
+      "owned_paths": [
+        "src/parser.rs"
+      ]
+    },
+    {
+      "id": "billing",
+      "prompt": "Use corrected parser to implement billing and inline integration tests only in src/billing.rs.",
+      "requirements": [
+        1,
+        2
+      ],
+      "depends_on": [
+        "parser"
+      ],
+      "owned_paths": [
+        "src/billing.rs"
+      ]
+    }
+  ],
+  "profile": "native-trusted",
+  "decision_mode": "enforced",
+  "budget": {
+    "max_tokens": 500000,
+    "max_output_tokens": 4096,
+    "deadline_secs": 1200
+  },
+  "concurrency": 2,
+  "max_steps": 12,
+  "max_repairs": 2,
+  "context_bytes": 48000,
+  "secrets": [],
+  "skills": []
+}

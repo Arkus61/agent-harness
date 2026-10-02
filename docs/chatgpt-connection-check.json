@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-02T05:27:23.528443+00:00",
+  "execution_mode": "live",
+  "command": "harness auth chatgpt --check",
+  "backend": "codex_app_server",
+  "cli_check_attempts": 3,
+  "successful_cli_checks": 1,
+  "status": "PASS",
+  "account_type": "chatgpt",
+  "plan_type": "plus",
+  "model": "gpt-6.1-sol",
+  "reply": {
+    "actions": [],
+    "decision": null,
+    "done": true,
+    "findings": [],
+    "plan": [],
+    "proofs": [],
+    "summary": "ChatGPT connection OK",
+    "verdict": null
+  },
+  "provider_usage": {
+    "complete": true,
+    "input_tokens": 5000,
+    "output_tokens": 45
+  },
+  "fresh_login": "official device authorization completed",
+  "limits": "One successful structured connection probe. Live development pipeline and quality benchmark have not been run. Usage is the last observed Codex cumulative telemetry; final billing is not verified. No credentials or authorization codes recorded.",
+  "binary_version": "0.1.1",
+  "codex_version": "0.159.0-alpha.3"
+}

@@ -1,0 +1,49 @@
+{
+  "policy": {
+    "hard_requirements": ["offline", "cross-platform"],
+    "metrics": [
+      {"name": "latency", "unit": "ms", "direction": "minimize", "weight": 3.0},
+      {"name": "memory", "unit": "MiB", "direction": "minimize", "weight": 1.0}
+    ],
+    "max_candidates": 3,
+    "max_probes": 2
+  },
+  "candidates": [
+    {
+      "id": "sqlite-fts",
+      "mechanism": "A local persisted lexical index using bundled SQLite FTS5",
+      "requirements": {
+        "offline": {"status": "PASS", "evidence": "SYNTHETIC FIXTURE: assume a local bundled backend; this is not an executed check"},
+        "cross-platform": {"status": "PASS", "evidence": "SYNTHETIC FIXTURE: assume native builds exist on the three target platforms"}
+      },
+      "measurements": {
+        "latency": {"value": 2.0, "unit": "ms", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30},
+        "memory": {"value": 18.0, "unit": "MiB", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30}
+      }
+    },
+    {
+      "id": "linear-scan",
+      "mechanism": "Read and scan the current source corpus on each query without a persisted index",
+      "requirements": {
+        "offline": {"status": "PASS", "evidence": "SYNTHETIC FIXTURE: assume only local file reads"},
+        "cross-platform": {"status": "PASS", "evidence": "SYNTHETIC FIXTURE: assume a portable scanner"}
+      },
+      "measurements": {
+        "latency": {"value": 18.0, "unit": "ms", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30},
+        "memory": {"value": 6.0, "unit": "MiB", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30}
+      }
+    },
+    {
+      "id": "remote-index",
+      "mechanism": "Query a hosted index that requires a live network connection",
+      "requirements": {
+        "offline": {"status": "FAIL", "evidence": "SYNTHETIC FIXTURE: the proposed mechanism requires network access"},
+        "cross-platform": {"status": "PASS", "evidence": "SYNTHETIC FIXTURE: assume an HTTP client on each platform"}
+      },
+      "measurements": {
+        "latency": {"value": 1.0, "unit": "ms", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30},
+        "memory": {"value": 4.0, "unit": "MiB", "environment_hash": "fixture:demo-desktop", "evidence": "SYNTHETIC FIXTURE: supplied value, not a measured benchmark", "sample_size": 30}
+      }
+    }
+  ]
+}

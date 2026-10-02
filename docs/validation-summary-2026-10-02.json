@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-02T06:06:12.279545+00:00",
+  "overall_status": "FAIL_ENFORCED_LIVE_READINESS",
+  "source_commit": "1268c328c4c713eef706d30ff15f14349567aac5",
+  "harness_version": "0.1.1",
+  "binary_sha256": "b5ec508f863299b48cf3373adc09e2af0d92ccf7eb1f0c93cafe767fe51269fa",
+  "platform": "Linux x86_64",
+  "local": {
+    "status": "PASS",
+    "unit_and_integration_tests": 91,
+    "failed_tests": 0,
+    "component_assertions": 20,
+    "format": "PASS",
+    "clippy": "PASS",
+    "release_build": "PASS",
+    "demo": "FIXTURE_VERIFIED",
+    "evidence": "local/summary.json"
+  },
+  "failure_checks": {
+    "status": "PASS",
+    "selected_repeated_tests": 22,
+    "additional_cli_checks": 8,
+    "sigint_cleanup_successes": 5,
+    "sigkill_orphan_limitation_observed": true,
+    "evidence": "failures/cli-failure-checks.json"
+  },
+  "enforced_live": {
+    "status": "FAIL",
+    "tasks": 6,
+    "fresh_trials": 18,
+    "successful_trials": 0,
+    "stable_tasks": 0,
+    "candidate_commits": 0,
+    "direct_decision_holds": 14,
+    "timeout": 1,
+    "sibling_cancellations_with_unknown_usage": 3,
+    "observed_spent_tokens": 202147,
+    "reserved_unknown_tokens": 82785,
+    "unknown_calls": 4,
+    "false_verified_observed": 0,
+    "false_verified_scope": "All runs blocked before candidate; zero is not a defect-detection accuracy estimate.",
+    "evidence": "live/summary.json"
+  },
+  "shadow_diagnostic": {
+    "status": "PASS_DIAGNOSTIC_ONLY",
+    "excluded_from_enforced_results": true,
+    "state": "VERIFIED",
+    "candidate_sha": "e38bc3995769a023cf075ac3ba31c8c049c8ce2f",
+    "elapsed_seconds": 87.241,
+    "observed_spent_tokens": 60195,
+    "reserved_tokens": 0,
+    "external_oracle": "PASS",
+    "candidate_binding": "PASS",
+    "source_test_coverage_evidence": "diagnostic-shadow/regression-test-coverage.json",
+    "evidence": "diagnostic-shadow/report.json",
+    "regression_tests_independently_checked": "PASS; all public categories inspected; original bug substitution caused three assertion failures, correct candidate four tests passed.",
+    "candidate_binding_and_oracle_integrity": "PASS"
+  },
+  "performance": {
+    "status": "PARTIAL_OBSERVATIONS",
+    "warm_version_p95_ms": 2.267709,
+    "doctor_p95_ms": 13.187881,
+    "component_eval_p95_ms": 6.262279,
+    "evidence": "performance/performance-results.json"
+  },
+  "complete_42_system_scenarios_executed": 0,
+  "planned_30_task_benchmark_executed": 0,
+  "windows_execution": "NOT_EXECUTED",
+  "macos_execution": "NOT_EXECUTED",
+  "isolated_runtime": "NOT_IMPLEMENTED",
+  "blocking_findings": [
+    {
+      "id": "V01",
+      "severity": "blocking",
+      "finding": "DecisionService model/tools configuration assessment receives action:null and the prompt asks for exact-action permission; evaluator abstains and enforced runs stop before builder.",
+      "remedy": "Define purpose-specific typed subjects for model selection, tool configuration and action risk; provide the exact subject and require matching response."
+    },
+    {
+      "id": "V02",
+      "severity": "blocking",
+      "finding": "The risk evaluator interprets its own read-only Codex environment as a prohibition on a proposed Harness ToolGateway edit; observed allow:false for the legitimate clamp fix in shadow.",
+      "remedy": "State evaluator and execution authority explicitly; assess the proposed external Gateway operation against effective grants without executing it in the evaluator."
+    },
+    {
+      "id": "V03",
+      "severity": "limitation",
+      "finding": "SIGKILL of native coordinator can leave command child alive; uncertain intent is durable and resume holds.",
+      "remedy": "Add supervisor/parent-death cleanup per platform or an isolated supervised runtime; do not advertise native SIGKILL cleanup before testing it."
+    },
+    {
+      "id": "V04",
+      "severity": "diagnostic",
+      "finding": "Sibling cancellation can mask the initiating decision HOLD as a cancelled Codex completion with unknown usage.",
+      "remedy": "Preserve the primary branch failure and report sibling cancellations and retained reservations separately."
+    }
+  ],
+  "limitations": [
+    "Fresh tests are Linux only.",
+    "Pilot consists of six public trusted toy tasks; it is not the frozen 30-task benchmark or hidden holdout.",
+    "External oracles execute native code with user rights; no isolation guarantee.",
+    "Q01–Q05 behavioral oracle does not independently establish added regression-test adequacy; no enforced candidate was produced. Q02 shadow has supplemental exact-source and red/green test evidence.",
+    "Complete scenario runner, full crash/power-loss matrix, monetary billing, no-I/O dispatch and matched successful serial/parallel comparison remain unavailable/unexecuted.",
+    "Known telemetry and held reservation estimates are separate; final billing and four interrupted calls are unknown."
+  ]
+}
