@@ -6,6 +6,8 @@
 
 ## Сборка и быстрый пример
 
+Если вы используете готовый Linux-архив, распакуйте его и запускайте executable из каталога пакета как `./bin/harness`. Например, `./bin/harness auth status` и `./bin/harness auth chatgpt --check`. Для команд ниже добавьте каталог `bin` пакета в `PATH` либо используйте полный путь к executable. Codex CLI устанавливается отдельно и тоже должен быть доступен в `PATH`.
+
 Нужны **Rust 1.99.0**, Cargo и Git в `PATH`. Версия toolchain закреплена в `rust-toolchain.toml`; rustup выбирает её для сборки этого репозитория. SQLite включён в сборку; отдельный сервер, Python, Node.js и Docker для native runtime не требуются.
 
 ```text
@@ -58,7 +60,7 @@ harness --repo "../harness-demo" run --task "examples/task-chatgpt.json"
 
 `auth chatgpt` использует существующий вход ChatGPT либо запускает официальный `codex login`. Для headless-среды `--device` выбирает `codex login --device-auth`: пользователь проходит вход в браузере, Codex сохраняет и обновляет credentials. `--check` делает настоящий короткий запрос модели и проверяет JSON-ответ и usage. Без этого флага проверяется вход, а не генерация. Для установки вне `PATH` есть `--codex-program "/path/to/codex"`; тот же путь задаётся в task provider.
 
-В текущей среде два реальных `--check` завершились **`unauthorized`**; после них `auth status` сообщает отсутствие входа. Новый официальный device login ожидает завершения пользователем в браузере: подключение пока не установлено, успешная генерация не подтверждена. Диагностика показывает класс ошибки без исходного тела ответа.
+На **2026-10-02** официальный device login завершён, и release `auth chatgpt --check` прошёл: вход **ChatGPT**, план **Plus**, модель **`gpt-6.1-sol`** вернула ожидаемый JSON без actions; полная телеметрия usage получена. Подключение подтверждено коротким настоящим запросом. Live pipeline разработки и benchmark 30 задач ещё не выполнены. [Сохранённый результат проверки](docs/chatgpt-connection-check.json).
 
 [Готовая задача](examples/task-chatgpt.json) содержит `kind: "chatgpt"` и обязательное `allow_remote: true`. Пустой `model` использует default Codex для аккаунта; доступные модели показывает `auth status`, выбранную можно задать в task и проверить через `--model MODEL`. Контекст отправляется сервису Codex. Credentials остаются в хранилище официального CLI; не помещайте их в проект, чат или архив.
 
