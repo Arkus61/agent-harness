@@ -5,3 +5,5 @@
 *.sqlite-shm
 *.sqlite-wal
 .env
+__pycache__/
+evals/benchmark/structure-check/target/

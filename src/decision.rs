@@ -48,6 +48,8 @@ pub struct DecisionScope {
     pub owned_paths: Vec<String>,
     pub read_only: bool,
     pub protected_paths: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub command_resource_limits: Option<crate::resources::ResourceLimits>,
 }
 impl DecisionScope {
     pub fn new(
@@ -67,6 +69,7 @@ impl DecisionScope {
             owned_paths: owned_paths.into(),
             read_only,
             protected_paths: protected_paths.into(),
+            command_resource_limits: None,
         };
         scope.validate()?;
         Ok(scope)
@@ -77,7 +80,19 @@ impl DecisionScope {
         self
     }
 
+    pub fn with_resource_limits(
+        mut self,
+        limits: Option<&crate::resources::ResourceLimits>,
+    ) -> Result<Self> {
+        self.command_resource_limits = limits.cloned();
+        self.validate()?;
+        Ok(self)
+    }
+
     fn validate(&self) -> Result<()> {
+        if let Some(limits) = &self.command_resource_limits {
+            limits.validate()?;
+        }
         ensure!(
             self.read_only == (self.role == DecisionRole::Reviewer),
             "decision role/read-only mismatch"

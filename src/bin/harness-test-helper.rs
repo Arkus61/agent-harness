@@ -293,6 +293,123 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output.flush()?;
         }
         "sleep" => std::thread::sleep(Duration::from_millis(number(args.next(), 60_000)?)),
+        "resource-marker" => {
+            let path = args.next().ok_or("resource marker needs a path")?;
+            std::fs::write(path, "target-started")?;
+        }
+        "resource-cpu" => {
+            println!("CPU_STARTED");
+            io::stdout().flush()?;
+            let start = std::time::Instant::now();
+            while start.elapsed() < Duration::from_secs(4) {
+                std::hint::black_box(start.elapsed());
+            }
+            println!("CPU_FINISHED");
+        }
+        "resource-memory" => {
+            let mut bytes = Vec::<u8>::new();
+            if bytes.try_reserve_exact(64 * 1024 * 1024).is_err() {
+                println!("MEMORY_DENIED");
+                std::process::exit(42);
+            }
+            println!("MEMORY_ALLOCATED");
+            std::hint::black_box(&bytes);
+        }
+        "resource-file" => {
+            let path = args.next().ok_or("resource file needs a path")?;
+            let mut file = std::fs::File::create(path)?;
+            file.write_all(&[b'x'; 16 * 1024])?;
+            println!("FILE_WRITTEN");
+        }
+        "resource-process" => {
+            match Command::new(std::env::current_exe()?)
+                .args(["echo", "one-child"])
+                .spawn()
+            {
+                Ok(mut child) => {
+                    child.wait()?;
+                    println!("PROCESS_CREATED");
+                }
+                Err(error) => {
+                    println!("PROCESS_DENIED: {error}");
+                    std::process::exit(42);
+                }
+            }
+        }
+        #[cfg(target_os = "linux")]
+        "resource-privilege" => {
+            let value = unsafe { libc::prctl(libc::PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) };
+            if value < 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            println!("NO_NEW_PRIVS={value}");
+        }
+        #[cfg(target_os = "linux")]
+        "resource-isolated-process" => {
+            let mut inherited: libc::rlimit = unsafe { std::mem::zeroed() };
+            if unsafe { libc::getrlimit(libc::RLIMIT_NPROC, &mut inherited) } != 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            let higher = libc::rlimit {
+                rlim_cur: inherited.rlim_max.saturating_add(1),
+                rlim_max: inherited.rlim_max.saturating_add(1),
+            };
+            let raise_denied = unsafe { libc::setrlimit(libc::RLIMIT_NPROC, &higher) } != 0;
+            // Tightening the inherited cap makes a one-child test deterministic
+            // without relying on unrelated UID process counts or a fork bomb.
+            let tight = libc::rlimit {
+                rlim_cur: 1,
+                rlim_max: 1,
+            };
+            if unsafe { libc::setrlimit(libc::RLIMIT_NPROC, &tight) } != 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            let fork_denied = match Command::new(std::env::current_exe()?)
+                .args(["echo", "one-child"])
+                .stdout(Stdio::null())
+                .spawn()
+            {
+                Ok(mut child) => {
+                    child.wait()?;
+                    false
+                }
+                Err(error) => error.raw_os_error() == Some(libc::EAGAIN),
+            };
+            let status = std::fs::read_to_string("/proc/self/status")?;
+            let capabilities = status
+                .lines()
+                .find_map(|line| line.strip_prefix("CapEff:"))
+                .ok_or("missing CapEff")?
+                .trim();
+            println!(
+                "{}",
+                serde_json::json!({"uid":unsafe{libc::geteuid()},"effective_capabilities":capabilities,"inherited_soft":inherited.rlim_cur,"inherited_hard":inherited.rlim_max,"raise_denied":raise_denied,"fork_denied_after_self_tightening_to_one":fork_denied})
+            );
+        }
+        #[cfg(unix)]
+        "resource-inherit" => {
+            let status = Command::new(std::env::current_exe()?)
+                .arg("resource-probe")
+                .status()?;
+            std::process::exit(status.code().unwrap_or(125));
+        }
+        #[cfg(unix)]
+        "resource-probe" => {
+            let mut values = serde_json::Map::new();
+            for (name, resource) in [("cpu", libc::RLIMIT_CPU), ("file", libc::RLIMIT_FSIZE)] {
+                let mut limit: libc::rlimit = unsafe { std::mem::zeroed() };
+                if unsafe { libc::getrlimit(resource, &mut limit) } != 0 {
+                    return Err(io::Error::last_os_error().into());
+                }
+                let higher = libc::rlimit {
+                    rlim_cur: limit.rlim_cur.saturating_add(1),
+                    rlim_max: limit.rlim_max.saturating_add(1),
+                };
+                let raised = unsafe { libc::setrlimit(resource, &higher) } == 0;
+                values.insert(name.into(), serde_json::json!({"soft":limit.rlim_cur,"hard":limit.rlim_max,"raised":raised}));
+            }
+            println!("{}", serde_json::Value::Object(values));
+        }
         "heartbeat" => {
             let path = args.next().ok_or("heartbeat requires an output path")?;
             heartbeat(Path::new(&path), number(args.next(), 25)?)?;

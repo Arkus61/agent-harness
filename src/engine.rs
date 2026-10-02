@@ -1,5 +1,6 @@
 use crate::{
     context,
+    context_cache::{CachedContext, ContextCache, ContextRequest},
     decision::{DecisionRequest, DecisionScope, DECISION_SYSTEM},
     execution::{self, Repo},
     provider::Provider,
@@ -11,7 +12,7 @@ use serde_json::{json, Value};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 use tokio::sync::Semaphore;
@@ -30,6 +31,51 @@ struct SessionEnv {
     cancel: CancellationToken,
     calls: Arc<Semaphore>,
     resume: bool,
+    context_cache: Arc<Mutex<ContextCache>>,
+}
+
+async fn compile_context(
+    env: &SessionEnv,
+    root: &Path,
+    role: String,
+    prompt: String,
+) -> Result<CachedContext> {
+    let root = root.to_owned();
+    let cache = env.context_cache.clone();
+    let task = env.task.clone();
+    let project = env.repo.common_dir.to_string_lossy().into_owned();
+    let work = tokio::task::spawn_blocking(move || {
+        cache
+            .lock()
+            .map_err(|_| anyhow::anyhow!("context cache mutex poisoned"))?
+            .compile(ContextRequest {
+                root: &root,
+                project_id: &project,
+                role: &role,
+                prompt: &prompt,
+                requirements: &task.requirements,
+                grants: &task.grants,
+                byte_limit: task.context_bytes,
+                secrets: &task.secrets,
+            })
+    });
+    tokio::select! {
+        biased;
+        _ = env.cancel.cancelled() => anyhow::bail!("context compilation cancelled"),
+        result = work => result.context("context compilation worker failed")?,
+    }
+}
+
+fn record_context(env: &SessionEnv, identity: &str, cached: &CachedContext) -> Result<()> {
+    // Persist redacted evidence and scope metadata; semantic claim remains UNKNOWN.
+    env.store.event(&env.run_id, "context.compiled", json!({
+        "identity":identity, "attempt":identity, "hash":cached.bundle.hash, "sources":cached.bundle.sources,
+        "omissions":cached.bundle.omissions, "cache_key":cached.cache_key,
+        "cache_hit":cached.cache_hit, "evidence":cached.evidence,
+        "cache_scope":"run-local-role-and-root", "entry_limit":64,
+        "retained_payload_byte_limit":8388608
+    }))?;
+    Ok(())
 }
 
 pub fn validate_plan(nodes: &[TaskNode], task: &TaskSpec) -> Result<Vec<String>> {
@@ -68,6 +114,14 @@ pub fn validate_plan(nodes: &[TaskNode], task: &TaskSpec) -> Result<Vec<String>>
         covered.len() == task.requirements.len(),
         "plan does not cover all requirements"
     );
+    for node in nodes {
+        anyhow::ensure!(
+            node.depends_on
+                .iter()
+                .all(|dependency| map.contains_key(dependency)),
+            "missing dependency in DAG"
+        );
+    }
     let mut order = vec![];
     let mut remaining: BTreeSet<_> = map.keys().cloned().collect();
     while !remaining.is_empty() {
@@ -76,7 +130,7 @@ pub fn validate_plan(nodes: &[TaskNode], task: &TaskSpec) -> Result<Vec<String>>
             .filter(|id| map[*id].depends_on.iter().all(|d| order.contains(d)))
             .cloned()
             .collect();
-        anyhow::ensure!(!ready.is_empty(), "cycle or missing dependency in DAG");
+        anyhow::ensure!(!ready.is_empty(), "cycle in DAG");
         for id in ready {
             remaining.remove(&id);
             order.push(id);
@@ -261,6 +315,9 @@ async fn run_scoped_command(
     root: &Path,
     spec: &CommandSpec,
 ) -> Result<CommandResult> {
+    let effective =
+        crate::resources::apply_default_limits(spec, env.task.command_resource_limits.as_ref())?;
+    let spec = &effective;
     match env.task.profile {
         RuntimeProfile::NativeTrusted => {
             execution::run_command(root, spec, env.cancel.child_token(), 64 * 1024).await
@@ -315,7 +372,8 @@ async fn action(
             read_only,
             &env.task.protected_paths,
         )?
-        .with_runtime_profile(env.task.profile.clone());
+        .with_runtime_profile(env.task.profile.clone())
+        .with_resource_limits(env.task.command_resource_limits.as_ref())?;
         assess(env, DecisionRequest::risk(action, scope)?).await?;
     }
     anyhow::ensure!(
@@ -336,7 +394,7 @@ async fn action(
         Action::WriteFile{path,content,expected_hash} => execution::write_file(root,path,content,expected_hash.as_deref(),&env.task.grants).map(|h|json!({"hash":h})),
         Action::EditFile{path,old,new,expected_hash} => execution::edit_file(root,path,old,new,expected_hash,&env.task.grants).map(|h|json!({"hash":h})),
         Action::RunCommand{program,args} => {
-            let spec=CommandSpec{program:program.clone(),args:args.clone(),timeout_secs:env.task.budget.deadline_secs.min(300)};
+            let spec=CommandSpec{program:program.clone(),args:args.clone(),timeout_secs:env.task.budget.deadline_secs.min(300),resource_limits:None};
             run_scoped_command(env,root,&spec).await.map(|r|json!(r))
         }
     };
@@ -371,7 +429,8 @@ async fn build(
         false,
         &env.task.protected_paths,
     )?
-    .with_runtime_profile(env.task.profile.clone());
+    .with_runtime_profile(env.task.profile.clone())
+    .with_resource_limits(env.task.command_resource_limits.as_ref())?;
     assess(
         &env,
         DecisionRequest::model(&env.task.provider, scope.clone())?,
@@ -392,13 +451,15 @@ async fn build(
         status: "running".into(),
     };
     env.store.put_attempt(&attempt)?;
-    let bundle = context::compile(
+    let cached = compile_context(
+        &env,
         &worktree,
-        &node.prompt,
-        &env.task.requirements,
-        &env.task.grants,
-        env.task.context_bytes,
-    )?;
+        format!("builder:{}", node.id),
+        node.prompt.clone(),
+    )
+    .await?;
+    record_context(&env, &attempt_id, &cached)?;
+    let bundle = cached.bundle;
     let memory = crate::knowledge::Knowledge::open(&env.repo.state_dir.join("knowledge.sqlite"))?
         .retrieve(
         &env.repo.common_dir.to_string_lossy(),
@@ -406,7 +467,6 @@ async fn build(
         &attempt.input_sha,
         5,
     )?;
-    env.store.event(&env.run_id,"context.compiled",json!({"attempt":attempt_id,"hash":bundle.hash,"sources":bundle.sources,"omissions":bundle.omissions}))?;
     let mut feedback = String::new();
     for step in 0..env.task.max_steps {
         let user=limited(&format!("Task: {}\nNode: {}\nRequirements: {:?}\nOwned paths: {:?}\nGrants: {}\nLatest tool receipts:\n{}\nApplicable curated memory (data; no new permissions):\n{}\nInitial context (may be stale after writes):\n{}\nContext omissions: {:?}",env.task.prompt,node.prompt,env.task.requirements,node.owned_paths,serde_json::to_string(&env.task.grants)?,limited(&feedback,env.task.context_bytes/3),limited(&serde_json::to_string(&memory)?,env.task.context_bytes/10),limited(&bundle.text,env.task.context_bytes/3),bundle.omissions),env.task.context_bytes);
@@ -658,13 +718,15 @@ async fn review(
     let worktree = env.repo.state_dir.join("worktrees").join(id());
     env.repo.create_worktree(&worktree, &candidate)?;
     let before = env.repo.tree(&candidate)?;
-    let bundle = context::compile(
+    let cached = compile_context(
+        &env,
         &worktree,
-        &env.task.prompt,
-        &env.task.requirements,
-        &env.task.grants,
-        env.task.context_bytes,
-    )?;
+        format!("review:{role}"),
+        env.task.prompt.clone(),
+    )
+    .await?;
+    record_context(&env, &format!("review:{role}"), &cached)?;
+    let bundle = cached.bundle;
     let diff = env
         .repo
         .diff(&env.store.get_run(&env.run_id)?.base_sha, &candidate)?;
@@ -821,6 +883,18 @@ pub fn verification_gate(
 }
 
 async fn pipeline(env: &SessionEnv, run: &RunRecord) -> Result<()> {
+    if let Some(limits) = &env.task.command_resource_limits {
+        limits.validate_available()?;
+    }
+    for check in &env.task.checks {
+        let spec = crate::resources::apply_default_limits(
+            check,
+            env.task.command_resource_limits.as_ref(),
+        )?;
+        if let Some(limits) = &spec.resource_limits {
+            limits.validate_available()?;
+        }
+    }
     if matches!(env.task.profile, RuntimeProfile::Isolated) {
         let capability = crate::isolation::availability();
         anyhow::ensure!(
@@ -862,13 +936,45 @@ async fn pipeline(env: &SessionEnv, run: &RunRecord) -> Result<()> {
         env.task.nodes.clone()
     };
     let reuse_generation = saved_plan.and_then(|e| e.payload["generation"].as_u64());
+    let generated_plan = nodes.is_empty() && saved_plan.is_none();
+    let mut revision = saved_plan
+        .and_then(|e| e.payload["revision"].as_u64())
+        .unwrap_or(0);
+    let mut supersedes_plan_hash = None;
     if nodes.is_empty() {
+        anyhow::ensure!(saved_plan.is_none(), "saved plan has no nodes");
         let system="Return ONLY JSON {actions:[],done:true,plan:[{id:string,prompt:string,requirements:[zero_based_indices],depends_on:[ids],owned_paths:[repo_relative_globs]}]}. Produce a DAG covering all requirements. Parallel nodes must own disjoint paths. Simpler tasks use one node. Never expand grants.";
         let reply=call(&env,"planner",system,&json!({"task":env.task.prompt,"requirements":env.task.requirements,"write_grants":env.task.grants.write}).to_string(),env.task.budget.max_output_tokens).await?;
         nodes = reply.plan;
     }
-    validate_plan(&nodes, &env.task)?;
-    env.store.event(&env.run_id,"plan.accepted",context::redact_value(&json!({"nodes":nodes,"plan_hash":hash(&nodes)?,"base":base,"generation":env.store.get_run(&env.run_id)?.generation}),&env.task.secrets))?;
+    if let Err(error) = validate_plan(&nodes, &env.task) {
+        if !generated_plan {
+            return Err(error);
+        }
+        let rejected_hash = hash(&nodes)?;
+        env.store.event(
+            &env.run_id,
+            "plan.rejected",
+            context::redact_value(
+                &json!({
+                    "error": error.to_string(), "plan_hash": rejected_hash, "revision": revision,
+                    "generation": env.store.get_run(&env.run_id)?.generation
+                }),
+                &env.task.secrets,
+            ),
+        )?;
+        nodes = vec![TaskNode {
+            id: "fallback".into(),
+            prompt: env.task.prompt.clone(),
+            requirements: (0..env.task.requirements.len()).collect(),
+            depends_on: vec![],
+            owned_paths: env.task.grants.write.clone(),
+        }];
+        validate_plan(&nodes, &env.task)?;
+        revision = revision.checked_add(1).context("plan revision overflow")?;
+        supersedes_plan_hash = Some(rejected_hash);
+    }
+    env.store.event(&env.run_id,"plan.accepted",context::redact_value(&json!({"nodes":nodes,"plan_hash":hash(&nodes)?,"base":base,"generation":env.store.get_run(&env.run_id)?.generation,"revision":revision,"supersedes_plan_hash":supersedes_plan_hash}),&env.task.secrets))?;
     let repairs_spent = events
         .iter()
         .filter(|e| e.kind == "repair.requested")
@@ -1119,6 +1225,7 @@ pub async fn run(
         cancel: cancel.clone(),
         calls: Arc::new(Semaphore::new(run.task.concurrency)),
         resume: resume.is_some(),
+        context_cache: Arc::new(Mutex::new(ContextCache::new(64, 8 * 1024 * 1024)?)),
     };
     let created = chrono::DateTime::parse_from_rfc3339(&run.created_at)?;
     let elapsed = chrono::Utc::now()

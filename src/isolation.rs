@@ -573,6 +573,7 @@ mod linux {
                 program: BWRAP.into(),
                 args,
                 timeout_secs: spec.timeout_secs,
+                resource_limits: spec.resource_limits.clone(),
             },
         ))
     }
@@ -609,6 +610,7 @@ mod linux {
                 program: BWRAP.into(),
                 args,
                 timeout_secs: 10,
+                resource_limits: None,
             };
             let result = crate::execution::run_command(
                 root.path(),

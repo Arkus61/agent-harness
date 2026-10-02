@@ -78,6 +78,8 @@ pub struct TaskSpec {
     pub skills: Vec<String>,
     #[serde(default)]
     pub protected_paths: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub command_resource_limits: Option<crate::resources::ResourceLimits>,
 }
 
 impl TaskSpec {
@@ -135,6 +137,10 @@ impl TaskSpec {
                 !check.program.is_empty() && check.timeout_secs > 0,
                 "invalid check command"
             );
+            crate::resources::apply_default_limits(check, self.command_resource_limits.as_ref())?;
+        }
+        if let Some(limits) = &self.command_resource_limits {
+            limits.validate()?;
         }
         if self.provider.kind == ProviderKind::OpenAi {
             anyhow::ensure!(!self.provider.model.is_empty(), "model is required");
@@ -217,6 +223,8 @@ pub struct CommandSpec {
     pub args: Vec<String>,
     #[serde(default = "timeout")]
     pub timeout_secs: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_limits: Option<crate::resources::ResourceLimits>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]

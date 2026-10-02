@@ -11,6 +11,7 @@ fn shell(script: &str, timeout_secs: u64) -> CommandSpec {
         program: "sh".into(),
         args: vec!["-c".into(), script.into()],
         timeout_secs,
+        resource_limits: None,
     }
 }
 
@@ -229,6 +230,7 @@ async fn cargo_offline_check_runs_with_protected_manifest_and_no_host_home() {
         program: "cargo".into(),
         args: vec!["test".into(), "--locked".into(), "--offline".into()],
         timeout_secs: 60,
+        resource_limits: None,
     };
     let result = run_isolated(
         root.path(),

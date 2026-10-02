@@ -97,6 +97,7 @@ fn fixture(command: &str, arguments: &[&str], timeout_secs: u64) -> CommandSpec 
             .chain(arguments.iter().map(|v| (*v).to_owned()))
             .collect(),
         timeout_secs,
+        resource_limits: None,
     }
 }
 

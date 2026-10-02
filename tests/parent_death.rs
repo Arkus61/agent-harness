@@ -108,6 +108,7 @@ async fn successful_command_cleanup_stops_background_descendant_and_preserves_ex
             heartbeat.to_string_lossy().into(),
         ],
         timeout_secs: 10,
+        resource_limits: None,
     };
     let result = agent_harness::execution::run_command(
         temp.path(),

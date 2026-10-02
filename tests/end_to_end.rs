@@ -385,6 +385,7 @@ async fn aborting_runtime_future_stops_descendant_processes() {
         program: env!("CARGO_BIN_EXE_harness-test-helper").into(),
         args: vec!["spawn".into(), heartbeat.to_str().unwrap().into()],
         timeout_secs: 30,
+        resource_limits: None,
     };
     let cwd = parent.path().to_path_buf();
     let command = tokio::spawn(async move {

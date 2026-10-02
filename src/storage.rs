@@ -22,6 +22,7 @@ pub struct Store {
 struct Inner {
     root: PathBuf,
     db: Mutex<Connection>,
+    read_only: bool,
 }
 
 fn encode<T: Serialize>(value: &T) -> Result<String> {
@@ -47,7 +48,21 @@ fn save_run(tx: &Transaction<'_>, run: &mut RunRecord) -> Result<()> {
     );
     Ok(())
 }
-fn append_event(tx: &Transaction<'_>, run_id: &str, kind: &str, payload: Value) -> Result<Event> {
+pub(crate) fn append_event(
+    tx: &Transaction<'_>,
+    run_id: &str,
+    kind: &str,
+    payload: Value,
+) -> Result<Event> {
+    append_event_with_depth(tx, run_id, kind, payload, 0)
+}
+pub(crate) fn append_event_with_depth(
+    tx: &Transaction<'_>,
+    run_id: &str,
+    kind: &str,
+    payload: Value,
+    depth: u32,
+) -> Result<Event> {
     let created_at = now();
     let generation = run_tx(tx, run_id)?.generation;
     tx.execute(
@@ -65,13 +80,15 @@ fn append_event(tx: &Transaction<'_>, run_id: &str, kind: &str, payload: Value) 
         "INSERT INTO outbox(event_seq,run_id,state) VALUES(?1,?2,'pending')",
         params![seq, run_id],
     )?;
-    Ok(Event {
+    let event = Event {
         seq,
         run_id: run_id.into(),
         kind: kind.into(),
         payload,
         created_at,
-    })
+    };
+    crate::outbox::enqueue_event(tx, &event, depth)?;
+    Ok(event)
 }
 fn mutable_run(run: &RunRecord) -> Result<()> {
     ensure!(
@@ -246,7 +263,7 @@ impl Store {
         db.pragma_update(None, "foreign_keys", "ON")?;
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
         let version: i64 = tx.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        ensure!(version <= 2, "state schema is newer than this harness");
+        ensure!(version <= 3, "state schema is newer than this harness");
         tx.execute_batch("CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY,record TEXT NOT NULL,resume_permitted INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS events(seq INTEGER PRIMARY KEY AUTOINCREMENT,run_id TEXT NOT NULL REFERENCES runs(id),kind TEXT NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,generation INTEGER NOT NULL);
             CREATE INDEX IF NOT EXISTS events_run ON events(run_id,seq);
@@ -264,25 +281,72 @@ impl Store {
                 "ALTER TABLE events ADD COLUMN generation INTEGER NOT NULL DEFAULT 1;",
             )?;
         }
-        tx.pragma_update(None, "user_version", 2)?;
+        crate::outbox::migrate(&tx)?;
+        tx.pragma_update(None, "user_version", 3)?;
         tx.commit()?;
         Ok(Self {
             inner: Arc::new(Inner {
                 root,
                 db: Mutex::new(db),
+                read_only: false,
             }),
         })
+    }
+    /// Open existing state without initialization, migration, permission changes,
+    /// or writable SQLite access. SQLite may use existing WAL shared memory.
+    pub fn open_read_only(root: impl AsRef<Path>) -> Result<Self> {
+        plain_directory(root.as_ref())?;
+        let root = fs::canonicalize(root.as_ref())?;
+        let path = root.join("state.sqlite3");
+        let metadata = fs::symlink_metadata(&path)?;
+        ensure!(
+            metadata.is_file() && !is_link(&metadata),
+            "state file is not regular"
+        );
+        for name in ["state.sqlite3-wal", "state.sqlite3-shm"] {
+            let sidecar = root.join(name);
+            if let Ok(metadata) = fs::symlink_metadata(sidecar) {
+                ensure!(
+                    metadata.is_file() && !is_link(&metadata),
+                    "state sidecar is not regular"
+                );
+            }
+        }
+        let db = Connection::open_with_flags(
+            path,
+            OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NOFOLLOW,
+        )?;
+        db.busy_timeout(Duration::from_secs(15))?;
+        let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
+        ensure!(
+            (2..=3).contains(&version),
+            "read-only state schema is unsupported; no migration performed"
+        );
+        Ok(Self {
+            inner: Arc::new(Inner {
+                root,
+                db: Mutex::new(db),
+                read_only: true,
+            }),
+        })
+    }
+    pub fn is_read_only(&self) -> bool {
+        self.inner.read_only
     }
     pub fn root(&self) -> &Path {
         &self.inner.root
     }
-    fn connection(&self) -> Result<MutexGuard<'_, Connection>> {
+    pub(crate) fn connection(&self) -> Result<MutexGuard<'_, Connection>> {
         self.inner
             .db
             .lock()
             .map_err(|_| anyhow!("state connection mutex poisoned"))
     }
-    fn transaction<T>(&self, op: impl FnOnce(&Transaction<'_>) -> Result<T>) -> Result<T> {
+    pub(crate) fn transaction<T>(
+        &self,
+        op: impl FnOnce(&Transaction<'_>) -> Result<T>,
+    ) -> Result<T> {
+        ensure!(!self.inner.read_only, "state store is read-only");
         let mut db = self.connection()?;
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
         let result = op(&tx)?;
@@ -717,6 +781,7 @@ impl Store {
         self.transaction(|tx| {let run=run_tx(tx,run_id)?;if generation!=run.generation || run.cancelled {return Ok(false);}let event_generation:Option<i64>=tx.query_row("SELECT generation FROM events WHERE seq=?1 AND run_id=?2",params![event_seq,run_id],|r|r.get(0)).optional()?;let event_generation=event_generation.ok_or_else(||anyhow!("hook event does not belong to run"))?;if event_generation!=sqlite_u64(generation)?{return Ok(false);}let added=tx.execute("INSERT OR IGNORE INTO hook_inbox(run_id,event_seq,handler,generation) VALUES(?1,?2,?3,?4)",params![run_id,event_seq,handler,sqlite_u64(generation)?])?;if added==1{append_event(tx,run_id,"hook_claimed",json!({"event_seq":event_seq,"handler":handler,"generation":generation}))?;}Ok(added==1)})
     }
     pub fn put_object(&self, bytes: &[u8]) -> Result<String> {
+        ensure!(!self.inner.read_only, "state store is read-only");
         let hash = blake3::hash(bytes).to_hex().to_string();
         let target = self.object_path(&hash)?;
         let parent = target.parent().expect("object parent");

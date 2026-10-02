@@ -133,6 +133,13 @@ fn git_output(cwd: &Path, args: &[&str]) -> Result<String> {
 
 impl Repo {
     pub fn discover(path: &Path) -> Result<Self> {
+        Self::discover_inner(path, true)
+    }
+    /// Resolve Git paths without initializing harness state or worktrees.
+    pub fn discover_read_only(path: &Path) -> Result<Self> {
+        Self::discover_inner(path, false)
+    }
+    fn discover_inner(path: &Path, initialize: bool) -> Result<Self> {
         let path = path
             .canonicalize()
             .context("repository path does not exist")?;
@@ -150,11 +157,15 @@ impl Repo {
                 "harness state directory cannot be a link"
             );
         }
-        fs::create_dir_all(state_dir.join("worktrees"))?;
-        ensure!(
-            state_dir.canonicalize()?.starts_with(&common_dir),
-            "state directory escaped Git common directory"
-        );
+        if initialize {
+            fs::create_dir_all(state_dir.join("worktrees"))?;
+        }
+        if state_dir.exists() {
+            ensure!(
+                state_dir.canonicalize()?.starts_with(&common_dir),
+                "state directory escaped Git common directory"
+            );
+        }
         Ok(Self {
             root,
             common_dir,
@@ -1036,7 +1047,12 @@ pub async fn run_command(
             duration_ms: 0,
         });
     }
-    let (mut command, payload) = crate::supervisor::prepare(&spec.program, &spec.args, false)?;
+    let (mut command, payload) = crate::supervisor::prepare_with_limits(
+        &spec.program,
+        &spec.args,
+        false,
+        spec.resource_limits.as_ref(),
+    )?;
     command.current_dir(cwd).env_clear();
     for key in runtime_environment_keys() {
         if let Some(value) = std::env::var_os(key) {
@@ -1111,6 +1127,7 @@ pub fn doctor(repo: Option<&Repo>) -> Value {
             "native-trusted": { "available": cfg!(any(unix, windows)), "filesystem_confinement": false, "network_confinement": false, "credential_file_confinement": false },
             "isolated": crate::isolation::availability()
         },
+        "resource_limits": crate::resources::availability(),
         "process_tree": if cfg!(windows) { "Supervisor lease and JobObject kill-on-close; target dispatch follows job assignment" } else { "Supervisor owner pipe, cleanup after owner death and successful exit; deliberately detached native processes can escape process groups" },
         "filesystem_gateway": { "scope_globs": true, "refuses_symlinks_and_junctions": true, "hostile_same_user_race_confinement": false },
         "limitations": ["Native commands have user-level filesystem and network rights", "No native process mechanism is advertised as a sandbox", "OS capabilities require execution on the actual platform"]
@@ -1475,6 +1492,7 @@ mod tests {
                 program: "nonexistent-command-for-test".into(),
                 args: vec![],
                 timeout_secs: 1,
+                resource_limits: None,
             },
             cancel,
             1024,

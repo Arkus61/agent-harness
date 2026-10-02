@@ -39,6 +39,15 @@ enum Command {
     Inspect {
         run: String,
     },
+    /// Inspect historical evidence without model calls or event delivery.
+    Replay {
+        run: String,
+    },
+    /// Explicit, bounded delivery to a local SQLite journal.
+    Outbox {
+        #[command(subcommand)]
+        command: OutboxCommand,
+    },
     Report {
         run: String,
         #[arg(long)]
@@ -107,6 +116,24 @@ enum AuthCommand {
         check: bool,
         #[arg(long)]
         model: Option<String>,
+    },
+}
+#[derive(Subcommand)]
+enum OutboxCommand {
+    Dispatch {
+        #[arg(long)]
+        policy: PathBuf,
+        #[arg(long, default_value_t = 100, value_parser = clap::value_parser!(u32).range(1..=100))]
+        limit: u32,
+    },
+    List {
+        handler: String,
+    },
+    Reconcile {
+        #[arg(long)]
+        policy: PathBuf,
+        #[arg(long)]
+        event: i64,
     },
 }
 struct AuthSignalGuard(tokio::task::JoinHandle<()>);
@@ -205,8 +232,31 @@ fn task(path: &Path) -> Result<TaskSpec> {
         &std::fs::read(path).with_context(|| format!("read task {}", path.display()))?,
     )
     .map_err(|e| {
+        let diagnostic = e.to_string();
+        let reason = ["unknown field", "missing field", "duplicate field"]
+            .iter()
+            .find_map(|category| {
+                diagnostic
+                    .strip_prefix(&format!("{category} `"))
+                    .and_then(|tail| {
+                        let name = tail.split('`').next()?;
+                        (name.len() <= 80
+                            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
+                        .then(|| format!("{category} `{name}`"))
+                    })
+            })
+            .unwrap_or_else(|| {
+                if diagnostic.starts_with("invalid type:") {
+                    "invalid field type".into()
+                } else if diagnostic.starts_with("unknown variant") {
+                    "unknown enum variant".into()
+                } else {
+                    "invalid task schema".into()
+                }
+            });
         anyhow::anyhow!(
-            "invalid task schema at line {}, column {}; check TaskSpec fields in README",
+            "{} at line {}, column {}; check TaskSpec fields in README",
+            reason,
             e.line(),
             e.column()
         )
@@ -324,7 +374,7 @@ async fn dispatch(cli: Cli) -> Result<bool> {
             }
         }
         Command::Doctor => {
-            let repo = Repo::discover(&cli.repo).ok();
+            let repo = Repo::discover_read_only(&cli.repo).ok();
             print(&agent_harness::execution::doctor(repo.as_ref()))?;
         }
         Command::Run { task: path } => {
@@ -347,6 +397,50 @@ async fn dispatch(cli: Cli) -> Result<bool> {
         Command::Inspect { run } => {
             let (_, store) = engine::open_store(&cli.repo)?;
             print(&engine::report(&store, &run)?)?;
+        }
+        Command::Replay { run } => {
+            let repo = Repo::discover_read_only(&cli.repo)?;
+            let store = agent_harness::storage::Store::open_read_only(&repo.state_dir)?;
+            let snapshot = agent_harness::replay::snapshot(&store, &run)?;
+            let consistent = snapshot.projection_consistent;
+            print(&snapshot)?;
+            return Ok(consistent);
+        }
+        Command::Outbox { command } => {
+            use agent_harness::outbox::{HandlerPolicy, LocalJournalAdapter, OutboxWorker};
+            match command {
+                OutboxCommand::List { handler } => {
+                    let repo = Repo::discover_read_only(&cli.repo)?;
+                    let store = agent_harness::storage::Store::open_read_only(&repo.state_dir)?;
+                    print(&store.outbox_deliveries(&handler)?)?;
+                }
+                OutboxCommand::Dispatch { policy, limit } => {
+                    let policy: HandlerPolicy = serde_json::from_slice(&std::fs::read(policy)?)?;
+                    policy.validate()?;
+                    let (repo, store) = engine::open_store(&cli.repo)?;
+                    let _lock = repo.lock()?;
+                    let adapter = LocalJournalAdapter::open(
+                        store.root().join("outbox-journal").join(&policy.handler),
+                        &policy.handler,
+                    )?;
+                    let mut worker = OutboxWorker::new(store, policy, adapter)?;
+                    let stamp = u64::try_from(chrono::Utc::now().timestamp_millis())?;
+                    print(&worker.tick(stamp, limit)?)?;
+                }
+                OutboxCommand::Reconcile { policy, event } => {
+                    let policy: HandlerPolicy = serde_json::from_slice(&std::fs::read(policy)?)?;
+                    policy.validate()?;
+                    let (repo, store) = engine::open_store(&cli.repo)?;
+                    let _lock = repo.lock()?;
+                    let adapter = LocalJournalAdapter::open(
+                        store.root().join("outbox-journal").join(&policy.handler),
+                        &policy.handler,
+                    )?;
+                    let mut worker = OutboxWorker::new(store, policy, adapter)?;
+                    let stamp = u64::try_from(chrono::Utc::now().timestamp_millis())?;
+                    print(&json!({"reconciled":worker.reconcile(event, stamp)?}))?;
+                }
+            }
         }
         Command::Report { run, output } => {
             let (_, store) = engine::open_store(&cli.repo)?;
@@ -589,6 +683,7 @@ fn create_demo(dir: &Path) -> Result<PathBuf> {
             program: "cargo".into(),
             args: vec!["test".into(), "--offline".into()],
             timeout_secs: 120,
+            resource_limits: None,
         }],
         provider: ProviderConfig {
             codex_program: "codex".into(),
@@ -620,6 +715,7 @@ fn create_demo(dir: &Path) -> Result<PathBuf> {
         secrets: vec![],
         skills: vec![],
         protected_paths: vec![],
+        command_resource_limits: None,
     };
     let path = dir.join("task.json");
     std::fs::write(&path, serde_json::to_vec_pretty(&t)?)?;

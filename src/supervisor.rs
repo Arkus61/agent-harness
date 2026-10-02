@@ -23,6 +23,8 @@ struct Request {
     program: String,
     args: Vec<String>,
     forward_stdin: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    resource_limits: Option<crate::resources::ResourceLimits>,
 }
 
 fn executable() -> Result<PathBuf> {
@@ -64,6 +66,18 @@ pub fn prepare(
     args: &[String],
     forward_stdin: bool,
 ) -> Result<(tokio::process::Command, Vec<u8>)> {
+    prepare_with_limits(program, args, forward_stdin, None)
+}
+
+pub fn prepare_with_limits(
+    program: &str,
+    args: &[String],
+    forward_stdin: bool,
+    resource_limits: Option<&crate::resources::ResourceLimits>,
+) -> Result<(tokio::process::Command, Vec<u8>)> {
+    if let Some(limits) = resource_limits {
+        limits.validate_available()?;
+    }
     ensure!(
         !program.is_empty() && !program.contains('\0') && !args.iter().any(|v| v.contains('\0')),
         "invalid supervised command argv"
@@ -73,6 +87,7 @@ pub fn prepare(
         program: program.into(),
         args: args.into(),
         forward_stdin,
+        resource_limits: resource_limits.cloned(),
     };
     let mut payload = serde_json::to_vec(&request)?;
     ensure!(
@@ -193,6 +208,7 @@ fn run() -> Result<()> {
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x00000200); // CREATE_NEW_PROCESS_GROUP
     }
+    crate::resources::configure_target(&mut command, request.resource_limits.as_ref())?;
     let mut child = command.spawn().context("spawn supervised target")?;
     let tree = match ProcessTree::attach(child.id()) {
         Ok(tree) => tree,
