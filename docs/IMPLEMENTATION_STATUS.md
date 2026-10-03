@@ -1,4 +1,11 @@
-# Статус реализации — 0.1.3, 2026-10-02
+# Статус реализации — 0.1.3, обновлено 2026-10-03
+
+[План приёмки и выпуска 1.0](superpowers/plans/2026-10-03-full-release.md) и
+[состав релиза](RELEASE_SCOPE_1_0.md) определяют оставшиеся работы.
+Native CI на текущем source **e10b8dd** успешно завершился на Linux/macOS/Windows:
+[run 37035427836](https://github.com/Arkus61/agent-harness/actions/runs/37035427836).
+Это подтверждает проверенные facets; полные S01–S42 автоматически не закрываются.
+Локальные отчёты ниже остаются привязаны к указанным в них историческим исходникам.
 
 **191 локальный Rust-тест PASS; полная готовность не подтверждена.** ChatGPT
 smoke PASS, но свежий H trial остановился на Codex timeout с unknown usage.
@@ -10,7 +17,7 @@ smoke PASS, но свежий H trial остановился на Codex timeout 
 |---|---|---|
 | Agent core | Rust CLI, WAL/FULL, intents/receipts, budgets/cancel/resume, exact Git candidate, 4 reviewers, enforced DecisionService | Full model/cross-platform acceptance и calibration |
 | DAG | Coverage/ownership/cycle guards, bounded parallel builders, безопасная model fallback revision | Полный multiagent corpus и measured speedup |
-| Runtime | Native supervisor/owner lease, Windows lifecycle JobObject code, probed Linux bubblewrap/protected mounts | Windows/macOS execution/isolation и aggregate quotas |
+| Runtime | Native supervisor/owner lease, Windows lifecycle JobObject с native CI, probed Linux bubblewrap/protected mounts | Полные Windows/macOS system scenarios, isolation и aggregate quotas |
 | Process limits | CPU/AS/FSIZE/NPROC hard caps, task/check binding и negative probes | Aggregate CPU/RAM/disk; Windows resource limits |
 | Context | Bounded cache, scope/role/root keys, dirty-source revalidation, redacted hash/range evidence | Entailment/compaction, model-response cache, measured gains |
 | Outbox | schema v3, leases/fences/retries/UNKNOWN/reconciliation, local idempotent journal CLI | Проверенные external mutating adapters и worker protocol |

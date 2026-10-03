@@ -1,10 +1,16 @@
 # План оценивания Agent Harness — 2026-10-01
 
+Актуальный состав и порядок доведения до 1.0 зафиксированы в
+[release scope](RELEASE_SCOPE_1_0.md) и
+[плане приёмки](superpowers/plans/2026-10-03-full-release.md).
+Все исходные S/C-ID сохраняются. Численные release gates и нормативные B0/B1/H
+читаются из новых документов; исторические результаты не переоцениваются.
+
 Это спецификация **42 полных системных сценариев S01–S42** и **30 задач разработки Q01–Q10**. [Машиночитаемый каталог](../evals/scenarios.json) содержит setup/action/criteria/evidence, режим испытания, partial test mappings и ограничения каждого сценария. [JSON Schema](../evals/scenarios.schema.json) проверяет структуру каталога.
 
 **Каталог не является отчётом испытания.** `design_status=planned` означает зафиксированный замысел; `implementation_status=partial` означает наличие отдельных проверок. Полные сценарии остаются `not_run_as_complete_scenario`. Существование test reference и успешный component test не дают PASS полного сценария.
 
-`harness eval` сейчас выполняет 20 deterministic component assertions и считает действительно выполненные результаты. Это отдельный fixture report, а не запуск всех 42 сценариев, не 30 live-задач и не сертификация трёх ОС. Runnable репозитории и внешние acceptance oracles для 30 задач, comparison runner B0/B1/H и полный scenario runner ещё planned. [Точная реализация и ограничения](IMPLEMENTATION_STATUS.md).
+`harness eval` сейчас выполняет 20 deterministic component assertions и считает действительно выполненные результаты. Это отдельный fixture report, а не запуск всех 42 сценариев, не 30 live-задач и не сертификация трёх ОС. Runnable репозитории и внешние acceptance oracles для 30 задач уже есть: [актуальный corpus workflow](../evals/benchmark/README.md). Полный comparison runner B0/B1/H и полный scenario runner ещё planned. [Точная реализация и ограничения](IMPLEMENTATION_STATUS.md).
 
 ## Уровни проверки и контракт результата
 
@@ -849,7 +855,7 @@ Linux bubblewrap проверен семью реальными [boundary tests]
 
 ## 30 задач разработки: 20 dev + 10 holdout
 
-В каждом классе создаются два public dev-экземпляра и один independent holdout. Сейчас это **план экземпляров**, а не готовые runnable benchmark repositories. Каждому экземпляру нужны committed baseline, public requirements, budget и applicability, protected acceptance oracle, заведомо корректное контрольное решение и meaningful negative control. Проверить надо также сам oracle: ошибка fixture не считается ошибкой харнесса.
+В каждом классе создаются два public dev-экземпляра и один independent holdout. Таблица ниже сохраняет исходный дизайн классов; actual runnable instances описаны в [benchmark corpus](../evals/benchmark/README.md). Его публичные H1 не считаются скрытым release holdout; создаются новые независимые задачи. Каждому экземпляру нужны committed baseline, public requirements, budget и applicability, protected acceptance oracle, заведомо корректное контрольное решение и meaningful negative control. Проверить надо также сам oracle: ошибка fixture не считается ошибкой харнесса.
 
 | Класс | Два dev-экземпляра | Независимый критерий |
 |---|---|---|
@@ -864,7 +870,7 @@ Linux bubblewrap проверен семью реальными [boundary tests]
 | Q09. Память/навыки | Правило устарело после API v2; Pinned skill quarantined | Актуальное знание применимо; stale/quarantined запись не используется. |
 | Q10. Выбор стратегии | Portable cache backend; Scan/index под заданной нагрузкой | Допустимый вариант выбран по сопоставимым измерениям и hard constraints. |
 
-Holdout должен отличаться причиной и граничными случаями, а не только именами. Exact holdout task/oracle definition создаётся отдельно и замораживается до comparison. Текущие generic H1 descriptors в JSON не раскрывают готового hidden corpus — его ещё нет.
+Holdout должен отличаться причиной и граничными случаями, а не только именами. Exact holdout task/oracle definition создаётся отдельно и замораживается до comparison. Generic descriptors в исходном JSON остаются дизайном. Реализованные H1 публичны; закрытого production holdout ещё нет.
 
 ## Сравнение B0/B1/H и свежие повторения
 
@@ -890,7 +896,7 @@ Holdout должен отличаться причиной и граничным
 
 Требования публичны; скрыты случаи/oracles. Оценщик проверяет **exact final integrated commit** с candidate hash. Hidden test outputs не возвращаются агенту для repair в текущем trial. Contract amendment требует новой версии и сохраняет прежние результаты.
 
-Protected oracle-controller отделяется от candidate environment. Недоверенный код не запускается с правами контроллера и не может менять итоговый report. Это требует evaluator boundary/isolated runtime, которые сейчас ещё planned. Для тестов внутри процесса кандидата нельзя обещать секретность test code. `cargo test` из TaskSpec сам по себе не создаёт protected hidden oracle.
+Protected oracle-controller отделяется от candidate environment. Недоверенный код не запускается с правами контроллера и не может менять итоговый report. Linux independent controller с реальной isolation уже реализован для публичного корпуса. Закрытый black-box holdout и полная macOS/Windows boundary matrix остаются release-задачами; секретность in-process тестов не обещается. Для тестов внутри процесса кандидата нельзя обещать секретность test code. `cargo test` из TaskSpec сам по себе не создаёт protected hidden oracle.
 
 Result manifest должен сохранять:
 

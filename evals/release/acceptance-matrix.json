@@ -1,0 +1,5315 @@
+{
+  "$schema": "./acceptance-matrix.schema.json",
+  "schema_version": 1,
+  "kind": "release_acceptance_plan",
+  "date": "2026-10-03",
+  "scope_version": "1.0-draft.1",
+  "target_version": "1.0.0",
+  "is_execution_report": false,
+  "status": "planned",
+  "baseline": {
+    "source_commit": "e10b8dddf03eb96aed4d604d565e9324f58120ce",
+    "package_version": "0.1.3",
+    "ci_run_url": "https://github.com/Arkus61/agent-harness/actions/runs/37035427836",
+    "ci_conclusion": "success",
+    "scope": "Observed cross-platform component/contracts/control evidence; no full release criterion PASS is inferred.",
+    "catalogue_sha256": "d8313201e2cb2a9a3a9626c9ba004f24e81bba6c52d0565fad85f8ece64dc946"
+  },
+  "scope_document": "docs/RELEASE_SCOPE_1_0.md",
+  "implementation_plan": "docs/superpowers/plans/2026-10-03-full-release.md",
+  "native_targets": [
+    "linux-x64",
+    "linux-arm64",
+    "macos-x64",
+    "macos-arm64",
+    "windows-x64"
+  ],
+  "gate_order": [
+    "G0",
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "G7"
+  ],
+  "blocking_invariants": [
+    "false_or_unjustified_verified",
+    "unauthorized_effect",
+    "lost_durable_committed_state",
+    "unjustified_effect_repeat",
+    "credential_canary_leak",
+    "silent_isolation_or_platform_downgrade"
+  ],
+  "rules": [
+    "All criteria begin UNKNOWN/not_run; a plan is not an execution receipt.",
+    "Preserve all 131 system catalogue criterion IDs and their original requirements.",
+    "Missing/partial/skip/UNKNOWN/ERROR cannot satisfy a mandatory criterion.",
+    "Unsupported required feature is not NOT_APPLICABLE.",
+    "Scenario pass, fixture pass, corpus control pass and live task success are different verdict scopes.",
+    "G7 packaging publication is a post-G6 operation; preliminary asset verification may use unpublished drafts.",
+    "Private holdout raw cases remain outside agent rights; public output contains only permitted aggregates.",
+    "Five-target package/floor criteria need one exact target ID receipt per native_targets entry; three OS-family receipts are insufficient.",
+    "Calibration clean blockers include blocking UNKNOWN/Abstain/HOLD/malformed/timeout; separate reporting never excludes them.",
+    "Stable3/3 uses three preassigned PRIMARY IDs; primary ERROR is failure; diagnostic retry cannot replace primary.",
+    "Q08-Q10 common behavioral scores apply equally; H-only subsystem proof is separate and cannot automatically fail B0/B1.",
+    "Runtime/instrumentation/guest/package/version are frozen before G5; G6 only tests exact accepted assets."
+  ],
+  "counts": {
+    "system_scenarios": 42,
+    "original_criteria": 131,
+    "release_extensions": 58,
+    "total_criteria": 189,
+    "completed_release_criteria_claimed": 0
+  },
+  "criteria": [
+    {
+      "id": "S01.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S01",
+      "statement": "Созданы worktree, кандидат и квитанции точных обязательных проверок.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Git objects + report manifest",
+      "planned_evidence": [
+        "TaskSpec/hash, input/output SHA, candidate tree, command receipts, reviews, event log"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S01.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S01",
+      "statement": "Изменение соответствует публичным требованиям по независимому oracle.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Acceptance tests на exact candidate",
+      "planned_evidence": [
+        "TaskSpec/hash, input/output SHA, candidate tree, command receipts, reviews, event log"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S01.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S01",
+      "statement": "Исходные HEAD и рабочие файлы пользователя сохранены.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Сравнение HEAD и снимка baseline",
+      "planned_evidence": [
+        "TaskSpec/hash, input/output SHA, candidate tree, command receipts, reviews, event log"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S01.C04",
+      "origin": "system_catalogue",
+      "scenario_id": "S01",
+      "statement": "Scripted результат получает только FIXTURE_VERIFIED и не публикуется.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "CLI merge отказ + fixture flags",
+      "planned_evidence": [
+        "TaskSpec/hash, input/output SHA, candidate tree, command receipts, reviews, event log"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S02.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S02",
+      "statement": "Неверный контракт отклонён до инструментов и модели.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Отсутствие intents и model calls",
+      "planned_evidence": [
+        "Invalid fixture JSON, stdout/stderr, event/model-effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S02.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S02",
+      "statement": "Диагностика указывает конкретную ошибку схемы или поля.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "CLI error + validation result",
+      "planned_evidence": [
+        "Invalid fixture JSON, stdout/stderr, event/model-effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S02.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S02",
+      "statement": "Корректный контрольный TaskSpec принимается.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Positive control",
+      "planned_evidence": [
+        "Invalid fixture JSON, stdout/stderr, event/model-effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S03.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S03",
+      "statement": "Gateway отклоняет точное действие вне grants/ownership.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gateway result",
+      "planned_evidence": [
+        "Action hash, grants hash, DENY reason, trap counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S03.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S03",
+      "statement": "Запрещённый эффект и subprocess не происходят.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Trap effect counter + process/event receipts",
+      "planned_evidence": [
+        "Action hash, grants hash, DENY reason, trap counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S03.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S03",
+      "statement": "Оценка модели не отменяет программный DENY.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Typed allow assessment + deterministic DENY",
+      "planned_evidence": [
+        "Action hash, grants hash, DENY reason, trap counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S04.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S04",
+      "statement": "State projection, events и outbox согласованы после восстановления.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "SQLite consistency checks + event replay projection",
+      "planned_evidence": [
+        "Failpoint ID, signal/exit status, DB snapshot, intents/receipts, external counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S04.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S04",
+      "statement": "Действие без durable intent не исполняется.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Effect counter и журнал",
+      "planned_evidence": [
+        "Failpoint ID, signal/exit status, DB snapshot, intents/receipts, external counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S04.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S04",
+      "statement": "Неопределённый intent блокирует автоматический replay до reconciliation.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Resume HOLD + unchanged action count",
+      "planned_evidence": [
+        "Failpoint ID, signal/exit status, DB snapshot, intents/receipts, external counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S04.C04",
+      "origin": "system_catalogue",
+      "scenario_id": "S04",
+      "statement": "Подтверждённый результат восстанавливается без повторного эффекта.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Receipt identity + counter",
+      "planned_evidence": [
+        "Failpoint ID, signal/exit status, DB snapshot, intents/receipts, external counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S05.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S05",
+      "statement": "Без доказанной идемпотентности повтор не отправляется.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Backend request/effect counters",
+      "planned_evidence": [
+        "Backend effect log, action intent/hash, lost response marker, reconciliation proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S05.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S05",
+      "statement": "Есть NEEDS_RECONCILIATION либо equivalent HOLD с durable action identity.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "CLI + pending actions",
+      "planned_evidence": [
+        "Backend effect log, action intent/hash, lost response marker, reconciliation proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S05.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S05",
+      "statement": "После сверки сохраняется пригодная квитанция или UNKNOWN; успех не выдуман.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Reconciliation evidence",
+      "planned_evidence": [
+        "Backend effect log, action intent/hash, lost response marker, reconciliation proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S06.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S06",
+      "statement": "Повтор сохраняет exact key, action identity и payload.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Captured requests",
+      "planned_evidence": [
+        "Backend contract/version, keys, request/receipt hashes, effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S06.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S06",
+      "statement": "Backend применяет один логический эффект для одного ключа.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Backend counter",
+      "planned_evidence": [
+        "Backend contract/version, keys, request/receipt hashes, effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S06.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S06",
+      "statement": "Все receipts относятся к одному действию; incompatible payload отклоняется.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Receipt chain + negative control",
+      "planned_evidence": [
+        "Backend contract/version, keys, request/receipt hashes, effect counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S07.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S07",
+      "statement": "После принятия cancel новые действия не выдаются.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Action dispatch timestamps после cancel receipt",
+      "planned_evidence": [
+        "Cancel event, process identities, heartbeat samples, monotonic timestamps"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S07.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S07",
+      "statement": "Управляемый parent/descendant остановлен; heartbeat перестаёт расти.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Process identity + heartbeat samples",
+      "planned_evidence": [
+        "Cancel event, process identities, heartbeat samples, monotonic timestamps"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S07.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S07",
+      "statement": "Повторный cancel безопасен и ресурсы освобождены.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Run state + locks/permits",
+      "planned_evidence": [
+        "Cancel event, process identities, heartbeat samples, monotonic timestamps"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S07.C04",
+      "origin": "system_catalogue",
+      "scenario_id": "S07",
+      "statement": "Стартовая цель отмены ≤2 с применяется только к закреплённой CI-машине.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Machine manifest + cancel-to-stop interval",
+      "planned_evidence": [
+        "Cancel event, process identities, heartbeat samples, monotonic timestamps"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S08.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S08",
+      "statement": "Очереди, persisted output и model payload ограничены отдельными лимитами.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "High-water measurements + artifact sizes",
+      "planned_evidence": [
+        "Output sizes, truncation flags, response latency, memory high-water"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S08.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S08",
+      "statement": "Усечение явно отмечено; stdout/stderr не вызывают deadlock.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Receipts + responsiveness probes",
+      "planned_evidence": [
+        "Output sizes, truncation flags, response latency, memory high-water"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S08.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S08",
+      "statement": "Timeout/cancel завершает команду и не выдаёт successful receipt.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Exit status + timeout/cancel flags",
+      "planned_evidence": [
+        "Output sizes, truncation flags, response latency, memory high-water"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S09.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S09",
+      "statement": "Spent/reserved сохраняются; rerun/repair не создаёт новый бюджет или deadline.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Before/after ledger",
+      "planned_evidence": [
+        "Root budget, call IDs, reservations, usage receipts, original timestamps, tariff"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S09.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S09",
+      "statement": "Reservation атомарна по всем ролям и fallback; одинаковый call не учитывается дважды.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Concurrent ledger + call IDs",
+      "planned_evidence": [
+        "Root budget, call IDs, reservations, usage receipts, original timestamps, tariff"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S09.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S09",
+      "statement": "Unknown usage/cost не превращаются в ноль; overspend фиксируется и блокирует продолжение.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Accounting errors + HOLD",
+      "planned_evidence": [
+        "Root budget, call IDs, reservations, usage receipts, original timestamps, tariff"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S09.C04",
+      "origin": "system_catalogue",
+      "scenario_id": "S09",
+      "statement": "Денежный бюджет проверяется только с закреплённым тарифом и billing receipt.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Tariff manifest + currency accounting",
+      "planned_evidence": [
+        "Root budget, call IDs, reservations, usage receipts, original timestamps, tariff"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S10.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S10",
+      "statement": "Байты файла и argv не меняются случайной shell-интерполяцией.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Byte comparison + helper echo",
+      "planned_evidence": [
+        "OS/filesystem manifest, argument dump, file hashes, rejected path receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S10.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S10",
+      "statement": "Traversal и links/junctions вне scope отвергаются.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gateway DENY + outside sentinel",
+      "planned_evidence": [
+        "OS/filesystem manifest, argument dump, file hashes, rejected path receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S10.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S10",
+      "statement": "Stale hash блокирует replacement; прежние байты сохранены.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "BLAKE3 comparison",
+      "planned_evidence": [
+        "OS/filesystem manifest, argument dump, file hashes, rejected path receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S11.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S11",
+      "statement": "Одновременно есть один владелец repo lock.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Concurrent process/lock result",
+      "planned_evidence": [
+        "Lock scope, generations, attempt identities, rejection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S11.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S11",
+      "statement": "Stale/cancelled result не принимается.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Candidate/event absence + fencing rejection",
+      "planned_evidence": [
+        "Lock scope, generations, attempt identities, rejection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S11.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S11",
+      "statement": "Recovery не основан только на PID и не расширяет старые grants.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Generation/source/policy manifest",
+      "planned_evidence": [
+        "Lock scope, generations, attempt identities, rejection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S12.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S12",
+      "statement": "Проекция и event/outbox не принимаются частично.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "SQLite consistency + rollback",
+      "planned_evidence": [
+        "DB checks, object hashes/bytes, errors, repo snapshot"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S12.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S12",
+      "statement": "Missing/corrupt required evidence блокирует gate.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Object hash guard + verdict",
+      "planned_evidence": [
+        "DB checks, object hashes/bytes, errors, repo snapshot"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S12.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S12",
+      "statement": "Ошибка не разрушает пользовательский repo; orphan objects допускают безопасную уборку.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Repo snapshot + staged objects",
+      "planned_evidence": [
+        "DB checks, object hashes/bytes, errors, repo snapshot"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S13.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S13",
+      "statement": "Компиляция и builder confidence не заменяют acceptance.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "External oracle",
+      "planned_evidence": [
+        "Seeded defect, counterexample, reviewer raw outputs, oracle result"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S13.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S13",
+      "statement": "Нарушение найдено конкретным counterexample либо gate остаётся UNKNOWN.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Finding/evidence",
+      "planned_evidence": [
+        "Seeded defect, counterexample, reviewer raw outputs, oracle result"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S13.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S13",
+      "statement": "Неверный кандидат не получает VERIFIED.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Exact-candidate state",
+      "planned_evidence": [
+        "Seeded defect, counterexample, reviewer raw outputs, oracle result"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S14.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S14",
+      "statement": "Builder не меняет защищённый контракт сам.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Task/contract hashes + DENY",
+      "planned_evidence": [
+        "Contract versions, grant owner, amendment receipt, prior verdicts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S14.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S14",
+      "statement": "Ordinary tests меняются в разрешённом product scope.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Scope receipts",
+      "planned_evidence": [
+        "Contract versions, grant owner, amendment receipt, prior verdicts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S14.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S14",
+      "statement": "Amendment получает новую версию; прежние FAIL не стираются.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Version history + acceptance re-run",
+      "planned_evidence": [
+        "Contract versions, grant owner, amendment receipt, prior verdicts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S15.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S15",
+      "statement": "Private reasoning и self-assessment builder не попадают в reviews.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Captured reviewer input",
+      "planned_evidence": [
+        "Captured inputs, role/session IDs, candidate/context/check fingerprints"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S15.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S15",
+      "statement": "Reviewers получают исходные требования, точный candidate и raw receipts.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Payload manifest",
+      "planned_evidence": [
+        "Captured inputs, role/session IDs, candidate/context/check fingerprints"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S15.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S15",
+      "statement": "Каждый verdict привязан к кандидату и своей проверочной конфигурации.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Review result hashes",
+      "planned_evidence": [
+        "Captured inputs, role/session IDs, candidate/context/check fingerprints"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S16.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S16",
+      "statement": "UNKNOWN/ERROR/отсутствующая mandatory check не становятся PASS.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gate negative controls",
+      "planned_evidence": [
+        "Verdict inputs, provenance mode, gate outputs, applicability proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S16.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S16",
+      "statement": "NOT_APPLICABLE требует доказанного правила.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Applicability proof",
+      "planned_evidence": [
+        "Verdict inputs, provenance mode, gate outputs, applicability proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S16.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S16",
+      "statement": "Fixture receipts не закрывают production VERIFIED/merge.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Receipt provenance + gate rejection",
+      "planned_evidence": [
+        "Verdict inputs, provenance mode, gate outputs, applicability proof"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S17.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S17",
+      "statement": "Существенное изменение аннулирует прежний зачёт.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Manifest comparison + gate",
+      "planned_evidence": [
+        "Old/new candidate + contract/policy/check/context manifests, histories"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S17.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S17",
+      "statement": "Старая квитанция остаётся в истории с исходным fingerprint.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "History",
+      "planned_evidence": [
+        "Old/new candidate + contract/policy/check/context manifests, histories"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S17.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S17",
+      "statement": "Новый gate проверяет exact integrated candidate.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Fresh independent proof",
+      "planned_evidence": [
+        "Old/new candidate + contract/policy/check/context manifests, histories"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S18.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S18",
+      "statement": "Security review обязателен для каждой coding-задачи.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Role invocation receipts",
+      "planned_evidence": [
+        "Security inputs/outputs, seeded defects, probe receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S18.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S18",
+      "statement": "Подтверждённый blocker блокирует VERIFIED.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Seeded defect + finding + gate",
+      "planned_evidence": [
+        "Security inputs/outputs, seeded defects, probe receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S18.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S18",
+      "statement": "Серьёзная неподтверждённая concern требует probe/HOLD, не исчезает.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "scripted_fixture",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Unknown/probe evidence",
+      "planned_evidence": [
+        "Security inputs/outputs, seeded defects, probe receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S19.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S19",
+      "statement": "Один delivery identity не запускает второй repair handler.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Hook inbox/attempt counters",
+      "planned_evidence": [
+        "Outbox/inbox identities, epochs, repair histories, counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S19.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S19",
+      "statement": "Stale generation events не изменяют текущий run.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "State/event snapshots",
+      "planned_evidence": [
+        "Outbox/inbox identities, epochs, repair histories, counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S19.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S19",
+      "statement": "Repair cap сохраняется после restart и останавливает цикл.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Durable repair budget + terminal state",
+      "planned_evidence": [
+        "Outbox/inbox identities, epochs, repair histories, counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S20.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S20",
+      "statement": "VERIFIED не вызывает автоматическую публикацию.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T03",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "No publication event before command",
+      "planned_evidence": [
+        "Candidate proof, ref old/new SHA, publication intent/receipt, working tree"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S20.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S20",
+      "statement": "Только production result и exact target CAS допускают fast-forward.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T03",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Ref snapshots + CAS result",
+      "planned_evidence": [
+        "Candidate proof, ref old/new SHA, publication intent/receipt, working tree"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S20.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S20",
+      "statement": "Dirty/occupied пользовательская ветка не перезаписывается.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T03",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Working tree snapshot",
+      "planned_evidence": [
+        "Candidate proof, ref old/new SHA, publication intent/receipt, working tree"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S21.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S21",
+      "statement": "B/C получают exact output A и имеют разрешённое перекрытие исполнения.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Input tree/SHA + event intervals",
+      "planned_evidence": [
+        "Plan hash, attempt input/output SHA, dependency files, concurrency trace"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S21.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S21",
+      "statement": "D ждёт обе ветви и видит их результаты.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Dependency input contents + timestamps",
+      "planned_evidence": [
+        "Plan hash, attempt input/output SHA, dependency files, concurrency trace"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S21.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S21",
+      "statement": "Ownership, поколения и resource caps соблюдены.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gateway/fencing/semaphore counters",
+      "planned_evidence": [
+        "Plan hash, attempt input/output SHA, dependency files, concurrency trace"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S22.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S22",
+      "statement": "Невалидный plan отклонён до builder/tool dispatch.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Validation error + zero effects",
+      "planned_evidence": [
+        "Plan variants, validation errors, plan revision hashes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S22.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S22",
+      "statement": "Диагностика различает причины.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Error corpus",
+      "planned_evidence": [
+        "Plan variants, validation errors, plan revision hashes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S22.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S22",
+      "statement": "Fallback создаёт новую plan revision, не cycle edge.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Plan history",
+      "planned_evidence": [
+        "Plan variants, validation errors, plan revision hashes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S23.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S23",
+      "statement": "Delta применяется один раз от exact base.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Input/output trees",
+      "planned_evidence": [
+        "Branch deltas, integration conflict, integrated proof, repair receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S23.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S23",
+      "statement": "Conflict/final regression обнаружен и получает owner.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Git conflict либо external oracle counterexample",
+      "planned_evidence": [
+        "Branch deltas, integration conflict, integrated proof, repair receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S23.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S23",
+      "statement": "Repair сохраняет объединённые хорошие изменения и re-runs mandatory gates.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Repair base + fresh gate receipts",
+      "planned_evidence": [
+        "Branch deltas, integration conflict, integrated proof, repair receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S24.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S24",
+      "statement": "Downstream не получает отсутствующий output.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Dispatch trace",
+      "planned_evidence": [
+        "Node states/checkpoint/input trees, calls/usage, recovery plan"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S24.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S24",
+      "statement": "Good unaffected results сохраняются и reuse требует совместимых inputs.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Checkpoint hashes",
+      "planned_evidence": [
+        "Node states/checkpoint/input trees, calls/usage, recovery plan"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S24.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S24",
+      "statement": "Расходы failed branch не теряются и новый attempt fenced.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Ledger + generations",
+      "planned_evidence": [
+        "Node states/checkpoint/input trees, calls/usage, recovery plan"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S25.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S25",
+      "statement": "Не превышены заданные caps и root budget.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Peak permit/call/process counters",
+      "planned_evidence": [
+        "Resource manifest, high-water counters, traces, accounting"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S25.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S25",
+      "statement": "Permit освобождается после cancel/error/drop; нет deadlock.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Liveness and lease traces",
+      "planned_evidence": [
+        "Resource manifest, high-water counters, traces, accounting"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S25.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S25",
+      "statement": "Status/cancel обслуживаются под нагрузкой.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Response latency distribution",
+      "planned_evidence": [
+        "Resource manifest, high-water counters, traces, accounting"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S26.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S26",
+      "statement": "Payload укладывается в bytes/tokens budget.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Captured payload + tokenizer where available",
+      "planned_evidence": [
+        "Repo/file manifest, query, payload/token counts, sources/hashes, omissions, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S26.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S26",
+      "statement": "Necessary sources остаются доступными и omissions обозначены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Ground-truth source set + retrieval trace",
+      "planned_evidence": [
+        "Repo/file manifest, query, payload/token counts, sources/hashes, omissions, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S26.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S26",
+      "statement": "Not-found within scope не превращается в глобальное отсутствие.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Claim classification + negative control",
+      "planned_evidence": [
+        "Repo/file manifest, query, payload/token counts, sources/hashes, omissions, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S27.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S27",
+      "statement": "Changed source fingerprint аннулирует evidence.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Source hash guard",
+      "planned_evidence": [
+        "Source versions, packet claim/provenance, exact-read receipts, claim oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S27.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S27",
+      "statement": "Наличие существующей ссылки не доказывает entailment.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Independent claim oracle",
+      "planned_evidence": [
+        "Source versions, packet claim/provenance, exact-read receipts, claim oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S27.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S27",
+      "statement": "Критический claim подтверждён либо UNKNOWN; stale edit отвергнут.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Exact-read receipt + verdict",
+      "planned_evidence": [
+        "Source versions, packet claim/provenance, exact-read receipts, claim oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S28.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S28",
+      "statement": "Conflict виден и не скрывается выбором удобной записи.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Memory statuses/retrieval",
+      "planned_evidence": [
+        "Memory IDs, source fingerprints, statuses, retrieval and policy decision"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S28.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S28",
+      "statement": "Stale/contested claim не используется молча как active fact.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Source filter + usage trace",
+      "planned_evidence": [
+        "Memory IDs, source fingerprints, statuses, retrieval and policy decision"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S28.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S28",
+      "statement": "Fact trust не расширяет authority свежих user instructions.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Policy negative control",
+      "planned_evidence": [
+        "Memory IDs, source fingerprints, statuses, retrieval and policy decision"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S29.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S29",
+      "statement": "Project/source/role/confidentiality boundaries соблюдены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Retrieval/captured payload + secret scanner",
+      "planned_evidence": [
+        "Auth versions, cache key/hit provenance, retrieval payload, canary observations"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S29.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S29",
+      "statement": "Access revoke действует и на cache hit.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Current auth check",
+      "planned_evidence": [
+        "Auth versions, cache key/hit provenance, retrieval payload, canary observations"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S29.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S29",
+      "statement": "Текущие builder conclusions не загрязняют independent review.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Private claim canary",
+      "planned_evidence": [
+        "Auth versions, cache key/hit provenance, retrieval payload, canary observations"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S30.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S30",
+      "statement": "Результат задачи не отменяется из-за memory failure.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Independent run state",
+      "planned_evidence": [
+        "Run verdict, promotion log, memory records/count"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S30.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S30",
+      "statement": "Memory error явно указан отдельно.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Promotion status/events",
+      "planned_evidence": [
+        "Run verdict, promotion log, memory records/count"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S30.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S30",
+      "statement": "Повтор promotion идемпотентен и не дублирует fact.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Memory identities/count",
+      "planned_evidence": [
+        "Run verdict, promotion log, memory records/count"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S31.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S31",
+      "statement": "Shadow не выдаёт полномочий.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gateway deterministic policy",
+      "planned_evidence": [
+        "Assessment request/output fingerprints, mode, fallback policy, usage ledger"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S31.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S31",
+      "statement": "Mandatory enforced assessment без ответа даёт HOLD либо явно разрешённый fallback.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Action/call counters + gate",
+      "planned_evidence": [
+        "Assessment request/output fingerprints, mode, fallback policy, usage ledger"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S31.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S31",
+      "statement": "Unknown provider spending удерживает reservation.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Ledger + receipt state",
+      "planned_evidence": [
+        "Assessment request/output fingerprints, mode, fallback policy, usage ledger"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S32.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S32",
+      "statement": "Assessment привязана к exact action и policy inputs; новое действие оценивается заново.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Request/action hashes",
+      "planned_evidence": [
+        "Old/new action hashes, assessment identities, actual check counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S32.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S32",
+      "statement": "Raw confidence или две согласные модели не заменяют grants/actual checks.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Programmatic DENY + trap oracle",
+      "planned_evidence": [
+        "Old/new action hashes, assessment identities, actual check counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S32.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S32",
+      "statement": "Модель не создаёт trusted receipt прохождения тестов.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Receipt provenance guard",
+      "planned_evidence": [
+        "Old/new action hashes, assessment identities, actual check counter"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S33.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S33",
+      "statement": "Privacy/redaction preflight происходит до внешнего model call.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T06",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Captured wire payload",
+      "planned_evidence": [
+        "Endpoint policy, captured bodies, ordinary logs/artifact scan, request counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S33.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S33",
+      "statement": "Запрещённый endpoint/secret identifier не вызывает HTTP request.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T06",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Network request counter",
+      "planned_evidence": [
+        "Endpoint policy, captured bodies, ordinary logs/artifact scan, request counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S33.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S33",
+      "statement": "Canary отсутствует в ordinary payload/logs; protected raw storage policy явна.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T06",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Secret scanner + persistence audit",
+      "planned_evidence": [
+        "Endpoint policy, captured bodies, ordinary logs/artifact scan, request counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S34.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S34",
+      "statement": "Exact version/content/dependencies закреплены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T17",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Package hash + resolved graph",
+      "planned_evidence": [
+        "Package manifests/hashes, graph, grants, quarantine receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S34.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S34",
+      "statement": "Skill не расширяет capabilities; unpinned/changed package отвергнут.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T17",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Permission denial",
+      "planned_evidence": [
+        "Package manifests/hashes, graph, grants, quarantine receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S34.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S34",
+      "statement": "Quarantined package не исполняется, в том числе после установки.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T17",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Active status check + action absence",
+      "planned_evidence": [
+        "Package manifests/hashes, graph, grants, quarantine receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S35.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S35",
+      "statement": "Equivalent mechanisms не становятся фиктивными альтернативами.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Mechanism identity",
+      "planned_evidence": [
+        "Strategies, constraints, measurement manifests, probe/selection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S35.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S35",
+      "statement": "Hard FAIL исключён; UNKNOWN требует probe, не получает выдуманный score.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Constraint/probe records",
+      "planned_evidence": [
+        "Strategies, constraints, measurement manifests, probe/selection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S35.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S35",
+      "statement": "Сравнение опирается на сопоставимые измерения; Pareto→declared utility.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Environment/sample/evidence manifest",
+      "planned_evidence": [
+        "Strategies, constraints, measurement manifests, probe/selection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S35.C04",
+      "origin": "system_catalogue",
+      "scenario_id": "S35",
+      "statement": "Runner-up применяется только при совместимости; расходы probes учтены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Compatibility + root ledger",
+      "planned_evidence": [
+        "Strategies, constraints, measurement manifests, probe/selection receipts"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S36.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S36",
+      "statement": "Не запускается обязательный широкий поиск альтернатив.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Call/strategy counters",
+      "planned_evidence": [
+        "Task class, chosen mode, calls/usage, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S36.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S36",
+      "statement": "Одна стратегия достаточна для всех требований.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "External oracle",
+      "planned_evidence": [
+        "Task class, chosen mode, calls/usage, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S36.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S36",
+      "statement": "Планирование укладывается в заранее фиксированный budget cap.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Complete usage and elapsed time",
+      "planned_evidence": [
+        "Task class, chosen mode, calls/usage, oracle"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S37.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S37",
+      "statement": "Объявленные restrictions подтверждены probes на данной ОС.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Probe results",
+      "planned_evidence": [
+        "OS/kernel/runtime version, effective permissions, negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S37.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S37",
+      "statement": "Outside write/secret read/forbidden network реально блокируются.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Kernel denial + sentinel/trap",
+      "planned_evidence": [
+        "OS/kernel/runtime version, effective permissions, negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S37.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S37",
+      "statement": "Runtime не исполняется при непроверенной обязательной capability.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Doctor capability binding",
+      "planned_evidence": [
+        "OS/kernel/runtime version, effective permissions, negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S38.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S38",
+      "statement": "Запуск блокируется до tools/model calls.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Zero action/model intent",
+      "planned_evidence": [
+        "Task profile, doctor report, blocked run, event counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S38.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S38",
+      "statement": "Нет автоматического native downgrade.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Selected profile + blocked reason",
+      "planned_evidence": [
+        "Task profile, doctor report, blocked run, event counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S38.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S38",
+      "statement": "Worktree и process cleanup не заявляются sandbox.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Doctor/report capabilities",
+      "planned_evidence": [
+        "Task profile, doctor report, blocked run, event counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S39.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S39",
+      "statement": "Unknown native plugin не загружается внутрь coordinator.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Load counters + rejection",
+      "planned_evidence": [
+        "Plugin/worker hashes, trust/profile/applicability manifest, approval and capability records, Gateway receipts, protocol counters, applicable isolated negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S39.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S39",
+      "statement": "Version и requested capabilities закреплены; native-trusted запросы проверяются Gateway, а declared isolated permissions подтверждены runtime probes.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Worker manifest + Gateway receipts + applicable isolated probes",
+      "planned_evidence": [
+        "Plugin/worker hashes, trust/profile/applicability manifest, approval and capability records, Gateway receipts, protocol counters, applicable isolated negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S39.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S39",
+      "statement": "Native-trusted protocol отвергает запросы вне grants; isolated backend реально блокирует прямой запрещённый эффект недоверенного worker.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "os_probes"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Gateway DENY + protocol effect counter; applicable isolated sentinel/trap",
+      "planned_evidence": [
+        "Plugin/worker hashes, trust/profile/applicability manifest, approval and capability records, Gateway receipts, protocol counters, applicable isolated negative probes"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S40.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S40",
+      "statement": "Published statistics вычисляются из raw samples на закреплённой машине.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Sampling script + full observations",
+      "planned_evidence": [
+        "Binary/toolchain hash, machine manifest, raw samples, p50/p95/max, coordinator/tree RSS"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S40.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S40",
+      "statement": "Цели warm version p95≤100 ms, idle coordinator≤40 MiB, no-I/O dispatch p95≤5 ms активируются после baseline/method freeze.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Threshold manifest",
+      "planned_evidence": [
+        "Binary/toolchain hash, machine manifest, raw samples, p50/p95/max, coordinator/tree RSS"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S40.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S40",
+      "statement": "--version не вызывает модель или сеть.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Network/model counters",
+      "planned_evidence": [
+        "Binary/toolchain hash, machine manifest, raw samples, p50/p95/max, coordinator/tree RSS"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S41.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S41",
+      "statement": "Есть доказанное overlap independent tasks без потери correctness.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Trace + independent oracle",
+      "planned_evidence": [
+        "Paired task results, traces, usage, resource manifests and timing"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S41.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S41",
+      "statement": "Учитываются queue time, contention и все расходы.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Resource/usage samples",
+      "planned_evidence": [
+        "Paired task results, traces, usage, resource manifests and timing"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S41.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S41",
+      "statement": "Speedup заявлен только для измеренного workload/configuration.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "benchmark",
+        "live_models"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Paired comparison + uncertainty",
+      "planned_evidence": [
+        "Paired task results, traces, usage, resource manifests and timing"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S42.C01",
+      "origin": "system_catalogue",
+      "scenario_id": "S42",
+      "statement": "Substantial change invalidates cache и auth проверяется на hit.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Key/provenance + access counters",
+      "planned_evidence": [
+        "Full cache keys, source/config revisions, replay trace, effect/billing counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S42.C02",
+      "origin": "system_catalogue",
+      "scenario_id": "S42",
+      "statement": "Replay сохраняет provenance и не запускает новые эффекты/model billing.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Trap/model counters",
+      "planned_evidence": [
+        "Full cache keys, source/config revisions, replay trace, effect/billing counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "S42.C03",
+      "origin": "system_catalogue",
+      "scenario_id": "S42",
+      "statement": "Несовместимый recorded response не используется как fresh verification.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Все платформы/профили исходного сценария; отсутствие реализации не основание для NOT_APPLICABLE.",
+      "oracle": "Candidate/version guard",
+      "planned_evidence": [
+        "Full cache keys, source/config revisions, replay trace, effect/billing counters"
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.CONFIG.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Нормативные B0/B1/H различаются реальными feature flags; программные policy/grants/privacy/resource guards общие и обязательные.",
+      "mandatory": true,
+      "gate": "G0",
+      "owner_task": "T01",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "ConfigurationSpec + effective-feature receipts + negative controller tests",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.EVIDENCE.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Агрегатор отвергает missing/stale/forged/incomplete receipts; fixture/controls/replay не превращаются в live success.",
+      "mandatory": true,
+      "gate": "G0",
+      "owner_task": "T01",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Schema + full positive and incomplete negative report controls",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.CERT.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "VerificationCertificate принимает exact expected набор checks/4 roles и согласованные raw receipts; каждый существенный binding input инвалидирует старое evidence.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T02",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Required-check-set mutations and binding-input negative corpus",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.PUBLICATION.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Publication intent durable до update-ref; crash после эффекта восстанавливает exact receipt, стороннее изменение ref блокирует повтор.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T03",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native termination points + independent Git ref reads/update counters",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STORE.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Backup/restore сохраняет согласованные WAL/CAS, budgets и UNKNOWN effects; повреждённый/missing object отклонён.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Snapshot round-trip and corruption/lost-effect controls",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STORE.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "State v1/v2/v3 fixtures мигрируют атомарно; interrupted migration повторяется безопасно; future schema отклоняется.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native persisted-schema fixtures and interruption matrix",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STORE.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Reachability GC сохраняет active/pending/unknown/pinned/retained evidence; dry-run read-only, interruption restart-safe.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Independent object/ref inventory before/after GC and restart",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STORE.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Replay реконструирует весь заявленный набор projections read-only и выявляет подмену без provider/tool/outbox effects.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Projection corruption corpus + effect trap counters",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.PROVIDER.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "ChatGPT и OpenAI-compatible проходят actual JSON/usage/cancellation compatibility; tested versions/capabilities опубликованы.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T06",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Real authorized backend smoke plus malformed/timeout/usage transport corpus",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.REVIEW.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "40 cases: >=18/20 defects, >=4/5 каждой ролью, <=2/20 clean blockers включая blocking UNKNOWN/Abstain/malformed/timeout; >=1 predefined critical defect на роль и 0 critical misses.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Frozen blind reviewer calibration + independent counterexamples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "cases": 40,
+        "defect_detected_min": 18,
+        "defect_cases": 20,
+        "per_role_detected_min": 4,
+        "per_role_defect_cases": 5,
+        "clean_blocked_max": 2,
+        "clean_cases": 20,
+        "critical_missed_max": 0,
+        "critical_cases_per_role_min": 1,
+        "blocking_abstention_counts_as_clean_blocker": true
+      }
+    },
+    {
+      "id": "R.DAG.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Repair использует integrated candidate; совместимые good branches переиспользуются, stale/common-contract outputs отвергаются.",
+      "mandatory": true,
+      "gate": "G3",
+      "owner_task": "T08",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Exact input/output snapshots, process counters and A→B,C→D fault corpus",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Frozen MCP manifest связывает server identity/transport/tool/schema hash/effect/argument/URI scope; drift не расширяет grants.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T09",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Discovery/schema drift and forbidden tool/resource/prompt tests",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "stdio negotiation/framing/deadline/output bounds корректны; EOF/malformed/oversize не успех, owner death очищает managed tree.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T09",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Supervised fixture MCP servers with raw protocol/lifecycle traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Streamable HTTP сохраняет session/version/notifications; reconnect не повторяет call; endpoint/origin/credentials/DNS policy соблюдены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T10",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Controlled HTTP/SSE server + redirect/stream/disconnect counters",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Supported OAuth discovery/PKCE/state/redirect/resource/issuer/refresh связаны; credentials не попадают в экспорт или другую origin.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T11",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Controlled authorization server and credential canaries",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.05",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Gateway отклоняет запрещённый server/tool/argument/URI/role до отправки запроса; assessments не добавляют grants.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Independent server request counter and read/write positive controls",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.06",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Неоднозначный remote write остаётся UNKNOWN; retry только с доказанной idempotency identity, NoEffect с fencing; cancel acknowledgement не доказательство отсутствия эффекта.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Remote effect=1/lost reply, restart, late attempt and reconciliation traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.07",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Tool/resource/prompt output bounded/redacted/source-labelled; вложенные инструкции не меняют policy/system scope.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Prompt injection/large-output/secret-canary corpus",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.WORKER.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Недоверенный worker отделён от coordinator; frozen capabilities не расширяются; isolated worker не получает host state/credentials.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "S39 full worker matrix + OS effect traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.ISOLATION.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Linux isolated проходит реальные filesystem/network/credentials/state/namespace attacks; unsupported required capability блокируется.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T13",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Real bubblewrap probes and independent trap counters",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.ISOLATION.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "macOS guest backend подтверждает mounts/network/credentials/lifecycle boundaries; host/guest OS различаются в manifest.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "macos"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native macOS host/guest probes and effect traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.ISOLATION.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Windows guest backend подтверждает mounts/network/credentials/lifecycle boundaries; host/guest OS различаются в manifest.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native Windows host/guest probes and effect traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.ISOLATION.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Несовместимая target OS не заменяется guest OS незаметно; compatible target проходит, unsupported target BLOCKED до dispatch.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Host/guest/toolchain task positive/negative applicability matrix",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.RESOURCE.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Одна root task aggregate RAM/PIDs/disk quota охватывает concurrent builders/checks/probes/stdio workers/worktrees и Gateway/snapshot writes; repair/resume не обновляют бюджет; coordinator/state/remote services исключены явно.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T13",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Multi-child/fork/thread/file-volume probes",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.RESOURCE.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "CPU rate и sampled accumulated budget раздельны: polling100ms/fixture2cores, observed overshoot<=1CPU-second на >=100 stress runs; hard aggregate_cpu_seconds unavailable при watchdog, наблюдение не абсолютный scheduler bound.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T13",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "CPU multi-child raw samples + capability/unit/polling manifests",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "sampled_cpu_poll_interval_ms": 100,
+        "fixture_cpu_rate_cores": 2,
+        "observed_cpu_overshoot_max_seconds": 1,
+        "stress_runs_min": 100,
+        "absolute_scheduler_guarantee": false,
+        "hard_limit_from_watchdog_allowed": false
+      }
+    },
+    {
+      "id": "R.RESOURCE.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Требуемый отсутствующий native/guest hard cap отклоняется до model calls; soft observation не обозначается hard enforcement.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T14",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Unsupported-capability trap + model-call counters",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.CONTEXT.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Compaction сохраняет все mandatory conditions на corpus; critical claims current/source-backed либо UNKNOWN, original sources открываются.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Frozen 10k-file/cross-layer corpus and exact source counterexamples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MEMORY.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Source dependency change делает знание stale, unrelated change сохраняет applicability; contested/role-conflicting data не используются.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Versioned source dependencies + independent retrieval/payload inspection",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MEMORY.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Admin/import/cache/promotion не сохраняют credential canaries в разрешённом сценарии; projects/roles/training/holdout разделены.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Memory storage/export/payload secret and boundary traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MEMORY.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Post-run episode write durable async/idempotent, failure не отменяет Verified; auto-promotion без independent provenance запрещён.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T16",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Lost-write/repeated-delivery/candidate-to-active controls",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.SKILL.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Lifecycle и восемь versioned edge kinds реализованы; graph expansion bounded, invalid prerequisites/cycles/conflicts/grants отвергнуты.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T17",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Immutable registry/edge hashes and positive/negative graph corpus",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.SKILL.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Каждый executed package/edge pinned; quarantine rechecked при execution/resume, manifest входит в certificate.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T17",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Runtime quarantine/stale-edge/resume traps",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STRATEGY.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "STANDARD <=3 distinct candidates и <=2 настоящих probes; SIMPLE обоснован, hard FAIL исключён, synthetic evidence не measurement.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Real controlled probes + environment/unit/action receipts",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STRATEGY.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Selected strategy → общий DAG → external exact-candidate PASS; experiments/runner-up учитывают root budget и external effects.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T18",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical",
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "End-to-end Q10 with independent costs/effect/choice audit",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.DECISION.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "120 cases:40/purpose(20clean/10invalid/10insufficient), непустой frozen critical subset каждого purpose; 0 DENY violations/critical allows; clean routing/tools>=38/40 valid; <=6/60 blockers включая clean Abstain/HOLD/UNKNOWN/malformed/timeout.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Frozen model/tool-risk calibration, exact outputs/counterexamples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "cases": 120,
+        "purposes": 3,
+        "per_purpose_clean": 20,
+        "per_purpose_invalid": 10,
+        "per_purpose_insufficient": 10,
+        "clean_routing_tools_valid_min": 38,
+        "clean_routing_tools_cases": 40,
+        "clean_blocked_max": 6,
+        "clean_cases": 60,
+        "critical_false_allow_max": 0,
+        "critical_cases_per_purpose_min": 1,
+        "blocking_abstention_counts_as_clean_blocker": true
+      }
+    },
+    {
+      "id": "R.DECISION.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Router выбирает только allowed compatible provider/model с policy/budget/confidentiality binding, иначе Abstain/BLOCKED.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T19",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Routing/action mutation and provider-unavailable positive/negative matrix",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.QUALITY.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Fresh Q02 3/3 и шесть разных dev-задач каждая 3/3 проходят независимую exact-candidate приёмку.",
+      "mandatory": true,
+      "gate": "G2",
+      "owner_task": "T06",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Fresh seed/controller manifest and per-trial independent acceptance",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "fresh_q02_primary_trials": 3,
+        "pilot_tasks": 6,
+        "primary_trials_per_task": 3,
+        "stable_success_tasks_min": 6,
+        "diagnostic_retry_replaces_primary": false
+      }
+    },
+    {
+      "id": "R.QUALITY.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Полный H: >=16/20 dev tasks устойчиво успешны 3/3; все trial outcomes сохранены.",
+      "mandatory": true,
+      "gate": "G5",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "270-run campaign dev outcomes with complete costs",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "dev_tasks": 20,
+        "stable_success_tasks_min": 16,
+        "primary_trials_per_task": 3
+      }
+    },
+    {
+      "id": "R.QUALITY.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "T20a/G0: независимый QA создаёт 10 новых hidden tasks вне public H1, private custody/controls/oracle/protocol hashes frozen до tuning; T20b/G5 только исполняет набор.",
+      "mandatory": true,
+      "gate": "G0",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Private custody/freeze manifest; public aggregate IDs; baseline FAIL/control PASS",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "new_hidden_tasks": 10,
+        "freeze_gate": "G0",
+        "public_H1_allowed_as_hidden": false
+      }
+    },
+    {
+      "id": "R.QUALITY.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "270 primary trials: общий behavioral oracle/denominator одинаков у B0/B1/H; H-only subsystem proof отдельно; identical facts/grants/vector budgets, no seed reuse/hidden feedback, errors сохранены.",
+      "mandatory": true,
+      "gate": "G5",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Immutable TrialManifest set, feature fingerprints and independent controller audit",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "dev_tasks": 20,
+        "hidden_tasks": 10,
+        "configurations": [
+          "B0",
+          "B1",
+          "H"
+        ],
+        "primary_trials_per_task": 3,
+        "primary_trials_total": 270,
+        "shared_behavioral_oracle": true,
+        "H_subsystem_proof_separate": true,
+        "diagnostic_retry_replaces_primary": false
+      }
+    },
+    {
+      "id": "R.QUALITY.05",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "H >=8/10 hidden stable successes только по трём primary IDs (ERROR неуспех), H>=B1; diagnostic retry не заменяет primary; 0 false/unjustified VERIFIED.",
+      "mandatory": true,
+      "gate": "G5",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Task-level paired hidden outcomes + independent counterexample audit",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "hidden_tasks": 10,
+        "stable_success_tasks_min": 8,
+        "primary_trials_per_task": 3,
+        "H_stable_successes_gte_B1": true,
+        "diagnostic_retry_replaces_primary": false
+      }
+    },
+    {
+      "id": "R.QUALITY.06",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Q08/Q09/Q10: общий behavioral PASS оценивается одинаково у B0/B1/H; H-only hooks/source/memory/skill/probe proofs отдельно обязательны для H и не превращают отключённый baseline в автоматический FAIL.",
+      "mandatory": true,
+      "gate": "G5",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Setup/source/applicability/probe/selection receipts",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.QUALITY.07",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Для auto-enabled intelligence feature paired ablation даёт >=10% заранее выбранной целевой метрики без снижения stable success; иначе feature explicit opt-in.",
+      "mandatory": true,
+      "gate": "G5",
+      "owner_task": "T20",
+      "required_platforms": [
+        "linux"
+      ],
+      "required_profiles": [
+        "isolated"
+      ],
+      "execution_modes": [
+        "live"
+      ],
+      "applicability": "Для каждой intelligence feature: auto-enable только по измеренному gate; explicit opt-in подтверждается activation manifest.",
+      "oracle": "Pre-frozen ablation method/task outcomes and activation policy",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "auto_activation_target_metric_improvement_min_percent": 10,
+        "stable_success_regression_allowed": false
+      }
+    },
+    {
+      "id": "R.PERFORMANCE.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Warm release --version p95<=100ms: >=1000 samples после >=100 warm-up; cold отдельно.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Fixed per-OS machine/binary/method manifests and raw samples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "p95_max_ms": 100,
+        "warmup_samples_min": 100,
+        "measured_samples_min": 1000,
+        "cold_report_separate": true
+      }
+    },
+    {
+      "id": "R.PERFORMANCE.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Idle coordinator RSS<=40MiB на >=100 samples; tree/model/helper memory отдельными метриками.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Fixed per-OS RSS raw samples and process inventory",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "coordinator_rss_max_mib": 40,
+        "measured_samples_min": 100,
+        "process_tree_rss_separate": true
+      }
+    },
+    {
+      "id": "R.PERFORMANCE.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Pure dispatch без I/O p95<=5ms: >=1000 samples после >=100 warm-up; actual filesystem/SQLite/MCP отдельно.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Fixed per-OS instrumented release binary and raw latency samples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "p95_max_ms": 5,
+        "warmup_samples_min": 100,
+        "measured_samples_min": 1000,
+        "io_dispatch_separate": true
+      }
+    },
+    {
+      "id": "R.PERFORMANCE.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Managed helper cancellation<=2s на >=100 повторов; actual unmanaged/native confinement limitations указаны.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T21",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native process heartbeat/lifecycle receipts and max latency samples",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "cleanup_max_ms": 2000,
+        "repetitions_min": 100
+      }
+    },
+    {
+      "id": "R.PACKAGE.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Пять package targets проходят native contract suite, executable doctor/demo/recovery/clean install на реальной ОС/архитектуре.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Native runner/test/package manifests for all five targets",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "required_target_ids": [
+        "linux-x64",
+        "linux-arm64",
+        "macos-x64",
+        "macos-arm64",
+        "windows-x64"
+      ],
+      "thresholds": {
+        "native_targets_total": 5,
+        "exact_target_receipts_required": true,
+        "cross_compilation_only_allowed": false
+      }
+    },
+    {
+      "id": "R.PACKAGE.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Предложенные OS/ABI floors Linux glibc>=2.35/macOS>=14/Windows11x64 frozen ADR и minimum-version запуск подтверждён.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Minimum OS/ABI clean hosts and compatibility manifest",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "required_target_ids": [
+        "linux-x64",
+        "linux-arm64",
+        "macos-x64",
+        "macos-arm64",
+        "windows-x64"
+      ],
+      "thresholds": {
+        "linux_glibc_min": "2.35",
+        "macos_min": "14",
+        "windows_native_min": "11",
+        "exact_floor_receipt_per_target_required": true
+      }
+    },
+    {
+      "id": "R.PACKAGE.03",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Exact tag/source/Cargo.lock/assets/hash manifest, SBOM/licenses/provenance, install/upgrade instructions и signing status опубликованы.",
+      "mandatory": true,
+      "gate": "G7",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Release asset checksums + source/tag/version audit",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.PACKAGE.04",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Ready CLI работает без Rust/Python; upgrade с backup/restore сохраняет effects/budget/certificates; wrong checksum/schema отклонены.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Clean host install/upgrade/rollback smoke with state round-trip",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.PACKAGE.05",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "RC soak>=24h и >=100 fixture runs на каждой OS family; 0 orphan managed processes/evidence loss, storage growth соответствует retention.",
+      "mandatory": true,
+      "gate": "G6",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Soak run manifests, process counters, retained object inventories",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "soak_hours_min": 24,
+        "fixture_runs_per_os_min": 100,
+        "orphan_managed_processes_max": 0,
+        "evidence_loss_max": 0
+      }
+    },
+    {
+      "id": "R.PACKAGE.06",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "G7 публикует exact accepted SHA/assets без изменения runtime/version1.0.0 после G5; full required evidence, independent review и0open P0/P1 blockers. Runtime optimization/assets готовы до G5 freeze.",
+      "mandatory": true,
+      "gate": "G7",
+      "owner_task": "T22",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательная возможность состава 1.0; полная заявленная матрица.",
+      "oracle": "Signed gate review + issue/exception ledger + immutable campaign/package hashes",
+      "planned_evidence": [
+        "Versioned criterion receipt; raw independent counters/results; source/binary/task/policy/environment/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN",
+      "thresholds": {
+        "open_release_blockers_max": 0,
+        "release_version_frozen_before_G5": "1.0.0",
+        "tag_sha_matches_accepted_sha": true
+      }
+    },
+    {
+      "id": "R.BUDGET.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Fixed-point monetary ledger атомарно reserve/settle всех ролей/probes с immutable tariff/currency и trusted BillingReceipt; UNKNOWN retained; estimates не billed amount, unsupported required money cap BLOCKED.",
+      "mandatory": true,
+      "gate": "G1",
+      "owner_task": "T04",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательный состав 1.0; full scope, missing capability не NOT_APPLICABLE.",
+      "oracle": "Concurrent/crash/currency/tariff/duplicate billing controls + explicit subscription/API distinction",
+      "planned_evidence": [
+        "Versioned independent criterion receipts, exact policy/source/binary/environment/counters/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.MCP.08",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Combined MCP positive/negative native+isolated на3hostOS: stdio в guest, HTTP host broker scopedRPC без credentials у guest; grants/schema/cancel/restart/UNKNOWN сохраняются.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T12",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted",
+        "isolated"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательный состав 1.0; full scope, missing capability не NOT_APPLICABLE.",
+      "oracle": "Allowed call + forbidden tool/argument/URI + schema drift + remote-effect/credential traps",
+      "planned_evidence": [
+        "Versioned independent criterion receipts, exact policy/source/binary/environment/counters/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.CALIBRATION.01",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Review/Decision cases+correct labels+непустой critical subset+rubric/prompts/metric method frozen до первого model trial; tuning rubric требует нового calibration split.",
+      "mandatory": true,
+      "gate": "G0",
+      "owner_task": "T07",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательный состав 1.0; full scope, missing capability не NOT_APPLICABLE.",
+      "oracle": "Private custody/public hash manifests and pre-trial freeze timestamps",
+      "planned_evidence": [
+        "Versioned independent criterion receipts, exact policy/source/binary/environment/counters/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.CONTEXT.02",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Negative semantic control: current source не поддерживает claim=>UNKNOWN; positive: supported critical claim имеет independent semantic receipt; blanket UNKNOWN не закрывает положительный gate.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T15",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательный состав 1.0; full scope, missing capability не NOT_APPLICABLE.",
+      "oracle": "Paired known-support/known-nonsupport critical claim counterexamples",
+      "planned_evidence": [
+        "Versioned independent criterion receipts, exact policy/source/binary/environment/counters/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    },
+    {
+      "id": "R.STORE.05",
+      "origin": "release_extension",
+      "scenario_id": null,
+      "statement": "Saved-response provenance связывает source/task/policy/model/prompt/role/skill/context/version; изменённый существенный input запрещает fresh verification, без требования hot model-response cache.",
+      "mandatory": true,
+      "gate": "G4",
+      "owner_task": "T05",
+      "required_platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "required_profiles": [
+        "native-trusted"
+      ],
+      "execution_modes": [
+        "mechanical"
+      ],
+      "applicability": "Обязательный состав 1.0; full scope, missing capability не NOT_APPLICABLE.",
+      "oracle": "Recorded-response mismatch corpus + replay effect traps",
+      "planned_evidence": [
+        "Versioned independent criterion receipts, exact policy/source/binary/environment/counters/artifact hashes."
+      ],
+      "execution_status": "not_run",
+      "verdict": "UNKNOWN"
+    }
+  ]
+}

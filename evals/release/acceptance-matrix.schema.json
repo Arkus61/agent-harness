@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Harness release acceptance plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "kind",
+    "date",
+    "scope_version",
+    "target_version",
+    "is_execution_report",
+    "status",
+    "baseline",
+    "scope_document",
+    "implementation_plan",
+    "native_targets",
+    "gate_order",
+    "blocking_invariants",
+    "rules",
+    "counts",
+    "criteria"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "kind": {
+      "const": "release_acceptance_plan"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "scope_version": {
+      "type": "string"
+    },
+    "target_version": {
+      "const": "1.0.0"
+    },
+    "is_execution_report": {
+      "const": false
+    },
+    "status": {
+      "const": "planned"
+    },
+    "baseline": {
+      "type": "object"
+    },
+    "scope_document": {
+      "type": "string"
+    },
+    "implementation_plan": {
+      "type": "string"
+    },
+    "native_targets": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "gate_order": {
+      "const": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ]
+    },
+    "blocking_invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_scenarios",
+        "original_criteria",
+        "release_extensions",
+        "total_criteria",
+        "completed_release_criteria_claimed"
+      ],
+      "properties": {
+        "system_scenarios": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "original_criteria": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "release_extensions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_criteria": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completed_release_criteria_claimed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 131,
+      "items": {
+        "$ref": "#/$defs/criterion"
+      }
+    }
+  },
+  "$defs": {
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "origin",
+        "scenario_id",
+        "statement",
+        "mandatory",
+        "gate",
+        "owner_task",
+        "required_platforms",
+        "required_profiles",
+        "execution_modes",
+        "applicability",
+        "oracle",
+        "planned_evidence",
+        "execution_status",
+        "verdict"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(S[0-9]{2}\\.C[0-9]{2}|R\\.[A-Z]+\\.[0-9]{2})$"
+        },
+        "origin": {
+          "enum": [
+            "system_catalogue",
+            "release_extension"
+          ]
+        },
+        "scenario_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "gate": {
+          "enum": [
+            "G0",
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7"
+          ]
+        },
+        "owner_task": {
+          "type": "string",
+          "pattern": "^T(0[1-9]|1[0-9]|2[0-2])$"
+        },
+        "required_platforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "linux",
+              "macos",
+              "windows"
+            ]
+          }
+        },
+        "required_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "native-trusted",
+              "isolated"
+            ]
+          }
+        },
+        "execution_modes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "applicability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planned_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "execution_status": {
+          "const": "not_run"
+        },
+        "verdict": {
+          "const": "UNKNOWN"
+        },
+        "required_target_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "enum": [
+              "linux-x64",
+              "linux-arm64",
+              "macos-x64",
+              "macos-arm64",
+              "windows-x64"
+            ]
+          }
+        },
+        "thresholds": {
+          "type": "object",
+          "minProperties": 1
+        }
+      }
+    }
+  }
+}

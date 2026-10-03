@@ -227,6 +227,7 @@ harness eval
 
 | Что нужно узнать | Где читать |
 | :--- | :--- |
+| Приёмка и выпуск 1.0 | [Поэтапный план](docs/superpowers/plans/2026-10-03-full-release.md) · [Состав релиза](docs/RELEASE_SCOPE_1_0.md) · [Матрица критериев](evals/release/acceptance-matrix.json) |
 | Архитектура и принятые решения | [Единый план](docs/ARCHITECTURE_PLAN.md) · [Сравнение предложений](docs/ARCHITECTURE_COMPARISON.md) |
 | CLI, восстановление и публикация | [Практический справочник](docs/CLI_GUIDE.md) |
 | Подписка ChatGPT и протокол Codex | [Подключение ChatGPT](docs/CHATGPT_SUBSCRIPTION.md) |
